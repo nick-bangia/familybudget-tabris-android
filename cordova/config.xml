@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="familybudget.tabris.androidclient" version="1.0.0">
+  <name>Family Budget Android Client</name>
+  <description>
+    An android client for the Family Budget API
+  </description>
+  <author email="nick.bangia@gmail.com">
+    Nick Bangia
+  </author>
+</widget>

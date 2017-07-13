@@ -1,2 +1,2 @@
-# familybudget-tabris-android
-Android client for the FamilyBudget API using javascript on the tabris platform
+# familybudget-androidclient
+Android client for the Family Budget using tabris.js

@@ -1,0 +1,6 @@
+{
+    "baseUrl": "https://familybudget.thebangias.net",
+    "loginUri": "/login",
+    "refreshAllowancesUri": "/refreshAllowances",
+    "budgetAllowancesUri": "/allowances"
+}

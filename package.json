@@ -1,0 +1,19 @@
+{
+  "title": "Family Budget Client",
+  "category": "Personal Finance",
+  "description": "An android client for the Family Budget API",
+  "main": "./src/pages/loginPage.js",
+  "dependencies": {
+    "tabris": "2.0.0-rc2",
+    "tabris-js-node": "^0.1.0",
+    "base-64": "^0.1.0",
+    "utf8": "^2.1.2",
+    "time-ago": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nick-bangia/familybudget-tabris-androidclient.git"
+  },
+  "author": "Nick Bangia",
+  "license": "UNLICENSED"
+}
