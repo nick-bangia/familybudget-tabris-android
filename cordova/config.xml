@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="familybudget.tabris.androidclient" version="1.0.0">
+<widget id="familybudget.tabris.android" version="1.0.0">
   <name>Family Budget Android Client</name>
   <description>
     An android client for the Family Budget API
@@ -7,4 +7,12 @@
   <author email="nick.bangia@gmail.com">
     Nick Bangia
   </author>
+
+  <platform name="android">
+        <icon src="drawable-mdpi/ic_launcher.png" density="mdpi" />
+        <icon src="drawable-hdpi/ic_launcher.png" density="hdpi" />
+        <icon src="drawable-xhdpi/ic_launcher.png" density="xhdpi" />
+        <icon src="drawable-xxhdpi/ic_launcher.png" density="xxhdpi" />
+        <icon src="drawable-xxxhdpi/ic_launcher.png" density="xxxhdpi" />
+    </platform>
 </widget>

@@ -12,10 +12,10 @@ new tabris.ImageView({
     id: 'splashImage',
     centerX: 0,
     centerY: -200,
-    width: 300,
+    width: 450,
     height: 450,
-    scaleMode: 'fit',
-    image: 'images/splashImage.png'
+    scaleMode: 'auto',
+    image: 'images/login_logo.png'
 }).appendTo(scrollView);
 
 // input elements
