@@ -27,7 +27,7 @@ new tabris.TextView({
 
 new tabris.TextInput({
     id: 'emailInput',
-    message: 'Your E-mail',
+    message: 'Your E-mail'
 }).appendTo(scrollView);
 
 new tabris.TextView({
@@ -38,7 +38,7 @@ new tabris.TextView({
 new tabris.TextInput({
     id: 'passwordInput',
     type: 'password',
-    message: 'Password',
+    message: 'Password'
 }).appendTo(scrollView);
 
 // sign in button

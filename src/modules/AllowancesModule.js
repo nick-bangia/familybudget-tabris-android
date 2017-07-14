@@ -2,133 +2,154 @@ var apiUtil = require("../util/APIUtil.js");
 var formatUtil = require('../util/FormatUtil.js');
 var timeAgo = require("time-ago");
 var ta = timeAgo();
-var coreNavigation = require('./CoreNavigation.js');
+var navigation = require("./CoreNavigation2.js");
 
-function setupDefaultAllowancesCollection(allowancesCollection) {
-    
-    // layout
-    allowancesCollection.left = 0;
-    allowancesCollection.right = 0;
-    allowancesCollection.top = 0;
-    allowancesCollection.bottom = 0;
-    allowancesCollection.itemHeight = 80;
+const {CollectionView, Composite, TextView, AlertDialog} = require('tabris');
+var accountsCollectionView;
 
-    // initialization of cells
-    allowancesCollection.initializeCell = function(cell) {
-        var itemNameView = new tabris.TextView({
-            left: 16, right: 16, top: 4,
-            markupEnabled: true,
-            textColor: 'black',
-            font: '18px'
-        }).appendTo(cell);
-        var itemAgeView = new tabris.TextView({
-            left: 16, right: 16, top: [itemNameView, 4],
-            markupEnabled: true,
-            textColor: '#4a4a4a'
-        }).appendTo(cell);
-        var totalBalanceTextView = new tabris.TextView({
-            right: 16, top: 4,
-            alignment: "right",
-            markupEnabled: true,
-            textColor: 'black',
-            font: "18px"
-        }).appendTo(cell);
-        var reconciledLabelTextView = new tabris.TextView({
-            right: 128, top: [totalBalanceTextView, 4],
-            alignment: "right",
-            markupEnabled: true,
-            textColor: '#4a4a4a',
-            text: "<em>Reconciled:</em>"
-        }).appendTo(cell);
-        var reconciledBalanceTextView = new tabris.TextView({
-            right: 16, top: [totalBalanceTextView, 4],
-            alignment: "right",
-            markupEnabled: true,
-            textColor: '#4a4a4a'
-        }).appendTo(cell);
-        var pendingLabelTextView = new tabris.TextView({
-            right: 128, top: [reconciledLabelTextView, 4],
-            alignment: "right",
-            markupEnabled: true,
-            textColor: '#4a4a4a',
-            text: "<em>Pending:</em>"
-        }).appendTo(cell);
-        var pendingBalanceTextView = new tabris.TextView({
-            right: 16, top: [reconciledLabelTextView, 4],
-            alignment: "right",
-            markupEnabled: true,
-            textColor: '#4a4a4a'
-        }).appendTo(cell);
-        cell.on('change:item', function({value: item}) {
-            itemNameView.text = "<strong>" + item.name + "</strong>";
-            itemAgeView.text = ta.ago(item.latestTransactionDate);
-            totalBalanceTextView.text = "<strong>" + formatUtil.FormatCurrency(item.reconciledAmount + item.pendingAmount) + "</strong>";
-            reconciledBalanceTextView.text = "<em>" + formatUtil.FormatCurrency(item.reconciledAmount) + "</em>";
-            pendingBalanceTextView.text = "<em>" + formatUtil.FormatCurrency(item.pendingAmount) + "</em>";
+function loadAccounts(accountsPage) {
+    // call on the API to get the allowances
+    getAccountItems(createAccountsCollection);
+}
 
+function getAccountItems(callback) {
+    apiUtil.getAllowances(function (json) {
+      var items = json.data;
+      
+      callback(items);
+    });
+}
+
+function createAccountsCollection(items) {
+    // create a collectionView object with the accountItems
+    accountsCollectionView = getAllowancesCollectionObject(items);
+    accountsCollectionView.refreshEnabled = true;
+    accountsCollectionView.appendTo(accountsPage);
+    accountsCollectionView.refreshIndicator = true;
+    accountsCollectionView.itemCount = items.length;
+    accountsCollectionView.refreshIndicator = false;   
+}
+
+function getAllowancesCollectionObject(items) {
+    // create a new CollectionView and initialize it to show allowances
+    return new CollectionView({
+        left: 0, top: 0, right: 0, bottom: 0,
+        background: '#f5f5f5',
+        refreshEnabled: false,
+        cellHeight: 96,
+        cellType: 'normal',
+        createCell: createItemCell,
+        updateCell: (view, index) => {
+            let item = items[index];
+            view.find('#container').first().item = item;
+            view.find('#nameText').set('text', "<b>" + item.name + "</b>");
+            view.find('#ageText').set('text', ta.ago(item.latestTransactionDate));
+            view.find('#totalBalanceText').set('text', "<strong>" + formatUtil.FormatCurrency(item.reconciledAmount + item.pendingAmount) + "</strong>");
+            view.find('#reconciledBalanceText').set('text', "<em>" + formatUtil.FormatCurrency(item.reconciledAmount) + "</em>");
+            view.find('#pendingBalanceText').set('text', "<em>" + formatUtil.FormatCurrency(item.pendingAmount) + "</em>");
+            
             // apply currency styles
             if ((item.reconciledAmount + item.pendingAmount) < 0) {
-                totalBalanceTextView.textColor = "red";
+                view.find('#totalBalanceText').set('textColor', '#ff0000');
             }
             if (item.reconciledAmount < 0) {
-                reconciledBalanceTextView.textColor = "red";
+                view.find('#reconciledBalanceText').set('textColor', '#ff0000');
             }
             if (item.pendingAmount < 0) {
-                pendingBalanceTextView.textColor = "red";
+                view.find('#pendingBalanceText').set('textColor', '#ff0000');
             }
-        });
-        cell.highlightOnTouch = true;
-    };
-
-    // event handling
-    allowancesCollection.on('select', function({item: allowance}) {
-        if (allowance.hasOwnProperty("items")) {
-            openNewList(allowance.name, allowance.items);
         }
+    }).on('refresh', function() {
+        console.log("Refresh event listener activated!");
+        // load the accounts again and refresh the view
+        // disable the refresh indicator once complete
+        getAccountItems(function (collectionItems) {
+            console.log("new account items retreived!");
+            items = collectionItems;
+            accountsCollectionView.refreshIndicator = true;
+            accountsCollectionView.itemCount = items.length;
+            accountsCollectionView.refresh();
+            accountsCollectionView.refreshIndicator = false;
+        });
     });
-
-    return allowancesCollection;
 }
 
-function openNewList(listName, allowanceList) {
-    // create a new Allowances Collection and fill it with the new list
-    var allowancesCollection = new tabris.CollectionView();
-    allowancesCollection = setupDefaultAllowancesCollection(allowancesCollection)
-    allowancesCollection.items = allowanceList;
-
-    // call coreNavigation to open a new page with this new collection in it
-    coreNavigation.OpenAllowancesPage(listName, allowancesCollection);
+function createItemCell() {
+    let cell = new Composite();
+    let container = new Composite({
+        id: 'container',
+        left: 16, right: 16, top: 8, bottom: 8,
+        cornerRadius: 2,
+        elevation: 2,
+        background: 'white',
+        highlightOnTouch: true
+    })
+    .on('tap', ({target: view}) => allowanceSelected(view.item))
+    .appendTo(cell);  
+    new TextView({
+        id: 'nameText',
+        top: 4, left: 16, right: 16,
+        textColor: '#000000',
+        markupEnabled: true,
+        font: '18px',
+        maxLines: 2
+    }).appendTo(container);
+    new TextView({
+        id: 'ageText',
+        top: '#nameText 4', bottom: 8, right: 16, left: 16,
+        textColor: '#4a4a4a'
+    }).appendTo(container);
+    new TextView({
+        id: 'totalBalanceText',
+        top: 4, right: 16,
+        alignment: 'right',
+        markupEnabled: true,
+        textColor: '#000000',
+        font: '18px'
+    }).appendTo(container);
+    new TextView({
+        id: 'reconciledLabelText',
+        right: 128, top: '#totalBalanceText 4',
+        alignment: 'right',
+        markupEnabled: true,
+        textColor: '#4a4a4a',
+        text: '<em>Reconciled:</em>'
+    }).appendTo(container);
+    new TextView({
+        id: 'reconciledBalanceText',
+        right: 16, top: '#totalBalanceText 4',
+        alignment: 'right',
+        markupEnabled: true,
+        textColor: '#4a4a4a'
+    }).appendTo(container);
+    new TextView({
+        id: 'pendingLabelText',
+        right: 128, top: '#reconciledLabelText 4',
+        alignment: 'right',
+        markupEnabled: true,
+        textColor: '#4a4a4a',
+        text: '<em>Pending:</em>'
+    }).appendTo(container);
+    new TextView({
+        id: 'pendingBalanceText',
+        right: 16, top: '#reconciledLabelText 4',
+        alignment: 'right',
+        markupEnabled: true,
+        textColor: '#4a4a4a'
+    }).appendTo(container);
+    
+    return cell;
 }
 
-function createAllowancesCollection(callback) {
-
-    // call the API to get the allowances
-    apiUtil.getAllowances(checkAllowancesResponse, consumeAllowancesResponse, callback);
+function allowanceSelected(allowance) {
+  if (allowance.hasOwnProperty("items")) {
+    var nextCollection = getAllowancesCollectionObject(allowance.items);
+    nextCollection.refreshEnabled = false;
+    nextCollection.refreshIndicator = true;
+    nextCollection.itemCount = allowance.items.length;
+    nextCollection.refreshIndicator = false;
+    navigation.LoadNewAllowancesPage(allowance.name, nextCollection);
+  }
 }
 
-function checkAllowancesResponse(response) { 
-    if (response.status != 200) {
-        // if request is unsuccessful, show message, and return false
-        new tabris.AlertDialog({
-            message: "Unable to get latest allowances at the moment",
-            buttons: {'ok': 'OK'}
-        }).open();
-
-        return false;
-
-    } else {
-        // if request is successful, return true
-        return true;
-    }
-}
-
-function consumeAllowancesResponse(allowancesResponse, finished) {
-    // create a new Collection with defaults and set the items from the passed in data
-    var allowancesCollection = new tabris.CollectionView();
-    allowancesCollection = setupDefaultAllowancesCollection(allowancesCollection)
-    allowancesCollection.items = allowancesResponse.data;
-
-    finished(allowancesCollection);
-}
-
-exports.GetAllowancesCollection = createAllowancesCollection;
+exports.LoadAccounts = loadAccounts;
