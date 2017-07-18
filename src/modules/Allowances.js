@@ -2,25 +2,25 @@ var apiUtil = require("../util/APIUtil.js");
 var formatUtil = require('../util/FormatUtil.js');
 var timeAgo = require("time-ago");
 var ta = timeAgo();
-var navigation = require("./CoreNavigation2.js");
+var navigation = require("./CoreNavigation.js");
 
 const {CollectionView, Composite, TextView, AlertDialog} = require('tabris');
 var accountsCollectionView;
 
 function loadAccounts(accountsPage) {
     // call on the API to get the allowances
-    getAccountItems(createAccountsCollection);
+    getAccountItems(createAccountsCollection, accountsPage);
 }
 
-function getAccountItems(callback) {
+function getAccountItems(callback, accountsPage) {
     apiUtil.getAllowances(function (json) {
       var items = json.data;
       
-      callback(items);
+      callback(items, accountsPage);
     });
 }
 
-function createAccountsCollection(items) {
+function createAccountsCollection(items, accountsPage) {
     // create a collectionView object with the accountItems
     accountsCollectionView = getAllowancesCollectionObject(items);
     accountsCollectionView.refreshEnabled = true;

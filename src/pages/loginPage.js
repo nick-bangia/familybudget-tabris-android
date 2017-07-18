@@ -2,47 +2,58 @@ require("tabris-js-node");
 var base64 = require('base-64');
 var utf8 = require('utf8');
 var apiUtil = require("../util/APIUtil.js");
-const {AlertDialog} = require('tabris');
+const {ImageView, TextView, TextInput, Button, CheckBox, ScrollView, ui, AlertDialog} = require('tabris');
+var rememberUsername = false;
 
 // create the main scrollView that will house all the input elements for the login page
-var scrollView = new tabris.ScrollView({left: 0, top: 0, right: 0, bottom: 0}).appendTo(tabris.ui.contentView);
+var scrollView = new ScrollView({left: 0, top: 0, right: 0, bottom: 0}).appendTo(ui.contentView);
 
 // splash image
-new tabris.ImageView({
+new ImageView({
     id: 'splashImage',
     centerX: 0,
     centerY: -200,
-    width: 450,
-    height: 450,
+    width: 250,
+    height: 250,
     scaleMode: 'auto',
-    image: 'images/login_logo.png'
+    image: 'images/budget_logo.png'
 }).appendTo(scrollView);
 
 // input elements
-new tabris.TextView({
-    id: 'emailLabel',
+new TextView({
+    id: 'usernameLabel',
     alignment: 'left',
-    text: 'E-mail:'
+    text: 'Username:'
 }).appendTo(scrollView);
 
-new tabris.TextInput({
-    id: 'emailInput',
-    message: 'Your E-mail'
+new TextInput({
+    id: 'usernameInput',
+    message: 'Username or e-mail',
+    text: localStorage.getItem('username') ? localStorage.getItem('username') : ''
 }).appendTo(scrollView);
 
-new tabris.TextView({
+new TextView({
     id: 'passwordLabel',
     text: 'Password:'
 }).appendTo(scrollView);
 
-new tabris.TextInput({
+new TextInput({
     id: 'passwordInput',
     type: 'password',
-    message: 'Password'
+    message: 'Password',
+    text: "apiDevelopment123!"
 }).appendTo(scrollView);
 
+new CheckBox({
+    id: 'rememberCheckbox',
+    text: "Remember my username",
+    checked: localStorage.getItem("rememberUsername") == "yes" ? true : false
+})
+.on('checkedChanged', event => rememberUsername = event.value)
+.appendTo(scrollView);
+
 // sign in button
-new tabris.Button({
+new Button({
     id: 'loginButton',
     text: 'Sign In',
     background: '#007729',
@@ -54,18 +65,31 @@ new tabris.Button({
 
 // apply UI layout
 scrollView.apply({
-    '#emailLabel': {left: 10, top: "45%", width: 120},
-    '#emailInput': {left: '#emailLabel 10', right: 10, baseline: '#emailLabel'},
-    '#passwordLabel': {left: 10, top: '#emailLabel 18', width: 120},
+    '#usernameLabel': {left: 10, top: "#splashImage 30", width: 120},
+    '#usernameInput': {left: '#usernameLabel 10', right: 10, baseline: '#usernameLabel'},
+    '#passwordLabel': {left: 10, top: '#usernameLabel 18', width: 120},
     '#passwordInput': {left: '#passwordLabel 10', right: 10, baseline: '#passwordLabel'},
-    '#loginButton': {left: 10, right: 10, top: '#passwordInput 18'}
+    '#rememberCheckbox': {left: 10, top: '#passwordLabel 18', width: 240},
+    '#loginButton': {left: 10, right: 10, top: '#rememberCheckbox 18'}
 });
 
 // loginToApi function - calls on the loginModule to login to the API and begin the application flow
 function loginToApi() {
+
     // get username and password from the scrollView
-    var username = scrollView.children('#emailInput').first().text;
+    var username = scrollView.children('#usernameInput').first().text;
     var password = scrollView.children('#passwordInput').first().text;
+    
+    // store whether the user chose to remember their username
+    if (rememberUsername) {
+        // if the user chose to remember their username, store it here
+        localStorage.setItem("rememberUsername", "yes");
+        localStorage.setItem("username", scrollView.children('#usernameInput').first().text);
+    } else {
+        // otherwise, clear it from local storage so that next session's login is cleared
+        localStorage.setItem("rememberUsername", "no");
+        localStorage.removeItem("username");
+    }
         
     // construct the base64 encoded username/password
     var stringToEncode = username + ':' + password;
@@ -85,5 +109,5 @@ function loginToApi() {
 function startCoreNavigation() {
 
     // load Core Navigation - runs automatically    
-    require('../modules/CoreNavigation2.js');
+    require('../modules/CoreNavigation.js');
 }

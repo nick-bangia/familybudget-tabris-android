@@ -1,85 +1,43 @@
-var pageConfig = require('../config/pageConfig.json');
-var allowancesModule = require('./AllowancesModule.js');
+var apiUtil = require("../util/APIUtil.js");
+var PageSelector = require("./PageSelector.js"); 
+var formatUtil = require("../util/FormatUtil.js");
+var allowancesModule = require("./Allowances.js");
+var timeAgo = require("time-ago");
+var ta = timeAgo();
 
-var navigationView = new tabris.NavigationView({
-  left: 0, top: 0, right: 0, bottom: 0,
-  drawerActionVisible: true
-}).appendTo(tabris.ui.contentView);
+const {CollectionView, Composite, ImageView, NavigationView, Page, TextView, WebView, ui, AlertDialog} = require('tabris');
 
-tabris.ui.drawer.enabled = true;
+let navigationView = new NavigationView({
+    left: 0, top: 0, right: 0, bottom: 0,
+    drawerActionVisible: true
+  }).appendTo(ui.contentView);
 
-// create the collection of items for the drawer from the page configurations
-new tabris.CollectionView({
-  left: 0, top: 0, right: 0, bottom: 0,
-  items: pageConfig,
-  initializeCell: initializeCell,
-  itemHeight: tabris.device.platform === 'iOS' ? 40 : 48
-}).on('select', function({item: pageConfiguration}) {
-  tabris.ui.drawer.close();
-  navigationView.pages().dispose();
-  openDrawerPage(pageConfiguration);
-}).appendTo(tabris.ui.drawer);
+ui.drawer.enabled = true;
+ui.drawer.append(
+  new PageSelector(openNewPage, {
+    left: 0, top: 16, right: 0, bottom: 0
+  })
+);
 
-// how to initialize each drawer item
-function initializeCell(cell) {
-  new tabris.Composite({
-    left: 0, right: 0, bottom: 0, height: 1,
-    background: '#bbb'
-  }).appendTo(cell);
-  var textView = new tabris.TextView({
-    left: 30, centerY: 0,
-    font: tabris.device.platform === 'iOS' ? '17px .HelveticaNeueInterface-Regular' : '14px Roboto Medium',
-    textColor: tabris.device.platform === 'iOS' ? 'rgb(22, 126, 251)' : '#212121'
-  }).appendTo(cell);
-  cell.on('change:item', function({value: page}) {
-    textView.set('text', page.title);
-  });
-}
-
-// public function to open the first page
-function displayAccountsPage() {
-  
-  // get the allowances and show the accounts page once complete
-  allowancesModule.GetAllowancesCollection(openAccountsPage); 
-}
-
-function displayAddNewItemsPage() {
-  new tabris.AlertDialog({
-            message: "Imagine inputting new items here",
-            buttons: {'ok': 'Let\'s Do It!'}
-  }).open();
-}
-
-function openAccountsPage(allowancesCollection) {
-  
-  // create a new page and append the collection to it
-  var accountsPage = new tabris.Page({
-     title: pageConfig[0].title,
-     autoDispose: false
-   });
-
-  accountsPage.append(allowancesCollection).appendTo(navigationView);
-}
-
-// code to open up a new drawer page
-function openDrawerPage(page) {
-  if (page.title == "Accounts") {
-    displayAccountsPage();
-  } else if (page.title == "Add New Items") {
-    displayAddNewItemsPage();
+function openNewPage(newPage) {
+  if (newPage.title == "Accounts") {
+    // accountsPage has not been loaded yet (or has already been disposed of)
+    allowancesModule.LoadAccounts(newPage);
+  } else if (newPage.title == "Add New Items") {
+    new AlertDialog({
+      message: "Coming soon!",
+      buttons: {ok: "Got it!"}
+    }).open();
   }
 }
 
-function openAllowancesPage(collectionName, allowancesCollection) {
+function loadNewCollection(pageTitle, collection) {
+  var newPage = new Page({
+    title: pageTitle
+  }).appendTo(navigationView);
 
-  // create a new page and append the collection to it
-  var allowancesPage = new tabris.Page({
-    title: collectionName,
-    autoDispose: false
-  });
-
-  allowancesPage.append(allowancesCollection).appendTo(navigationView);
+  collection.appendTo(newPage);
 }
 
-exports.StartCoreNavigation = displayAccountsPage;
-exports.OpenAllowancesPage = openAllowancesPage;
+exports.LoadNewAllowancesPage = loadNewCollection;
+exports.OpenPage = openNewPage;
