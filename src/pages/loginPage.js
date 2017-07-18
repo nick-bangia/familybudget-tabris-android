@@ -40,8 +40,7 @@ new TextView({
 new TextInput({
     id: 'passwordInput',
     type: 'password',
-    message: 'Password',
-    text: "apiDevelopment123!"
+    message: 'Password'
 }).appendTo(scrollView);
 
 new CheckBox({
