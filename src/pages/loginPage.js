@@ -3,7 +3,7 @@ var base64 = require('base-64');
 var utf8 = require('utf8');
 var apiUtil = require("../util/APIUtil.js");
 const {ImageView, TextView, TextInput, Button, CheckBox, ScrollView, ui, AlertDialog} = require('tabris');
-var rememberUsername = false;
+var rememberUsername = localStorage.getItem('rememberUsername');
 
 // create the main scrollView that will house all the input elements for the login page
 var scrollView = new ScrollView({left: 0, top: 0, right: 0, bottom: 0}).appendTo(ui.contentView);
