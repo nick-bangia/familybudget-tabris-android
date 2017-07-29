@@ -20,7 +20,7 @@ module.exports = class ItemProfileSelector extends Composite {
             this.append(
                 profiles.map(({profileName, type, paymentMethod, status}) => 
                     new Composite({class: 'profileEntry', highlightOnTouch: true}).append(
-                        new TextView({class: 'titleLabel', text: profileName})
+                        new TextView({class: 'profileLabel', text: profileName})
                     ).on('tap', () => this._open(
                         refreshSelector,
                         new Page({
@@ -79,14 +79,14 @@ module.exports = class ItemProfileSelector extends Composite {
     _applyLayout() {
         this.apply({
         '.profileEntry': {left: 0, top: 'prev()', right: 0, height: device.platform === 'iOS' ? 40 : 48},
-        '.titleLabel': {left: 10, centerY: 0},
+        '.profileLabel': {left: 10, centerY: 0},
         '#AddNewProfileButton': {centerX: 0, top: 'prev() 18'}
         });
     }
 
     _applyStyles() {
         this.apply({
-        '.titleLabel': {
+        '.profileLabel': {
             font: device.platform === 'iOS' ? '17px .HelveticaNeueInterface-Regular' : 'medium 20px',
             textColor: device.platform === 'iOS' ? 'rgb(22, 126, 251)' : '#212121'
         }
