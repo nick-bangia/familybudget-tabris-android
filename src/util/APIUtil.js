@@ -20,18 +20,16 @@ function getAllowances(externalCallback) {
     // construct the allowances URL
     var refreshAllowancesUrl = apiConfig.baseUrl + apiConfig.refreshAllowancesUri;
     var getAllowancesUrl = apiConfig.baseUrl + apiConfig.budgetAllowancesUri;
-
-    // construct the authorization header
-    var authorizationHeader = new Headers();
-    authorizationHeader.append("x_access_token", localStorage.getItem("access_token"));
-
-    // construct the request options
-    var requestOptions = { method: 'GET',
-                           headers: authorizationHeader,
-                           mode: 'cors',
-                           cache: 'default' };
     
-    return executeAllowancesRequest(refreshAllowancesUrl, getAllowancesUrl, requestOptions, externalCallback);
+    return executeAllowancesRequest(refreshAllowancesUrl, getAllowancesUrl, constructAuthorizedGetRequestOptions(), externalCallback);
+}
+
+function getPaymentMethods(externalCallback) {
+    
+    // construct the payment methods URL
+    var paymentMethodsUrl = apiConfig.baseUrl + apiConfig.paymentMethodsUri;
+    
+    executeRequest(paymentMethodsUrl, constructAuthorizedGetRequestOptions(), null, externalCallback);
 }
 
 function executeAllowancesRequest(refreshAllowancesUrl, getAllowancesUrl, requestOptions, externalCallback) {
@@ -76,6 +74,20 @@ function executeRequest(url, requestOptions, callback, externalCallback) {
     });
 }
 
+function constructAuthorizedGetRequestOptions() {
+    // construct the authorization header
+    var authorizationHeader = new Headers();
+    authorizationHeader.append("x_access_token", localStorage.getItem("access_token"));
+
+    // construct the request options
+    var requestOptions = { method: 'GET',
+                           headers: authorizationHeader,
+                           mode: 'cors',
+                           cache: 'default' };
+
+    return requestOptions;
+}
+
 function saveAccessKeys(data, externalCallback) {
     var accessKeys = data.data[0];
     localStorage.setItem("access_token", accessKeys.access_token);
@@ -91,4 +103,5 @@ function saveAccessKeys(data, externalCallback) {
 
 exports.login = login;
 exports.getAllowances = getAllowances;
+exports.getPaymentMethods = getPaymentMethods;
 

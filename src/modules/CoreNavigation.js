@@ -1,5 +1,6 @@
 var apiUtil = require("../util/APIUtil.js");
-var PageSelector = require("./PageSelector.js"); 
+var PageSelector = require("../widgets/PageSelector.js"); 
+var ItemProfileSelector = require("../widgets/ItemProfileSelector.js");
 var formatUtil = require("../util/FormatUtil.js");
 var allowancesModule = require("./Allowances.js");
 var timeAgo = require("time-ago");
@@ -20,15 +21,40 @@ ui.drawer.append(
 );
 
 function openNewPage(newPage) {
-  if (newPage.title == "Accounts") {
-    // accountsPage has not been loaded yet (or has already been disposed of)
-    allowancesModule.LoadAccounts(newPage);
-  } else if (newPage.title == "Add New Items") {
-    new AlertDialog({
-      message: "Coming soon!",
-      buttons: {ok: "Got it!"}
-    }).open();
+  
+  switch (newPage.title) {
+    case "Accounts":
+      // load accounts page
+      allowancesModule.LoadAccounts(newPage);
+      break;
+    case "Add New Items":
+      new AlertDialog({
+        message: "Coming soon!",
+        buttons: {ok: "Got it!"}
+      }).open();
+      break;
+    case "Item Profiles":
+      // build the ItemProfiles selection composite widget and
+      // append it to the new page
+      newPage.append(
+        new ItemProfileSelector(refreshItemProfileSelector, {
+          left: 0, top: 16, right: 0, bottom: 0
+        }
+      ));
+      break;
   }
+}
+
+function refreshItemProfileSelector() {
+  // refresh the item profile selector
+  // this method is called as a callback when the itemProfiles are modified 
+  navigationView.pages().dispose();
+  var newPage = new Page({
+    title: "Item Profiles"
+  });
+  newPage.appendTo(navigationView);
+  
+  openNewPage(newPage);
 }
 
 function loadNewCollection(pageTitle, collection) {
