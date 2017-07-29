@@ -1,40 +1,24 @@
 var ItemProfile = require('./ItemProfile.js');
 var dataUtil = require('../util/DataUtil.js');
 
-const {Button, Composite, TextView, Page, ui} = require('tabris');
+const {Button, Composite, TextView, Page, CollectionView, ui} = require('tabris');
 
 module.exports = class ItemProfileSelector extends Composite {
 
     constructor(refreshSelector, properties) {
         super(properties);
         this._createUI(refreshSelector);
-        this._applyLayout();
-        this._applyStyles();
     }
 
     _createUI(refreshSelector) {
         // load profiles from local storage
         var profiles = JSON.parse(localStorage.getItem("itemProfiles"));
 
-        if (profiles) {
-            this.append(
-                profiles.map(({profileName, type, paymentMethod, status}) => 
-                    new Composite({class: 'profileEntry', highlightOnTouch: true}).append(
-                        new TextView({class: 'profileLabel', text: profileName})
-                    ).on('tap', () => this._open(
-                        refreshSelector,
-                        new Page({
-                            title: profileName
-                        }),
-                        {profileName: profileName, type: type, paymentMethod: paymentMethod, status: status}
-                    ))
-                )
-            );
-        }
-
+        // append the add new profile button
         this.append(
             new Button({
                 id: 'AddNewProfileButton',
+                top: '5', centerX: 0,
                 text: 'Add New Profile',
                 background: '#007729',
                 textColor: 'white'
@@ -46,6 +30,60 @@ module.exports = class ItemProfileSelector extends Composite {
                 })
             ))
         );
+        
+        // if profiles exist and have length greater than 0, create the collection
+        // view to display them
+        if (profiles && profiles.length != 0) {
+            this.append(
+                new CollectionView({
+                    id: "profileCollection",
+                    left: 0, top: '#AddNewProfileButton 5', right: 0, bottom: 0,
+                    refreshEnabled: false,
+                    cellHeight: 60,
+                    cellType: 'normal',
+                    itemCount: profiles.length,
+                    createCell: () => {
+                        let cell = new Composite();
+                        let container = new Composite({
+                            id: 'container',
+                            left: 16, right: 16, top: 8, bottom: 8,
+                            cornerRadius: 2,
+                            elevation: 2,
+                            background: 'white',
+                            highlightOnTouch: true
+                        })
+                        .on('tap', ({target: view}) => {
+                            this._open(
+                                refreshSelector,
+                                new Page({
+                                    title: view.item.profileName
+                                }),
+                                {profileName: view.item.profileName, 
+                                 type: view.item.type, 
+                                 paymentMethod: view.item.paymentMethod, 
+                                 status: view.item.status}
+                            )    
+                        })
+                        .appendTo(cell);
+
+                        new TextView({
+                            id: 'itemNameText',
+                            markupEnabled: true,
+                            top: 4, bottom: 4, left: 10,
+                            textColor: '#000000',
+                            font: '18px'
+                        }).appendTo(container);
+
+                        return cell;
+                    },
+                    updateCell: (view, index) => {
+                        let item = profiles[index];
+                        view.find('#container').first().item = item;
+                        view.find('#itemNameText').set('text', "<strong>" + item.profileName + "</strong>");
+                    }
+                })
+            );
+        }
     }
 
     _open(refreshSelector, page, profile) {
@@ -74,22 +112,5 @@ module.exports = class ItemProfileSelector extends Composite {
                 closeNeutral: () => dataUtil.LoadData()
             }).open();
         }
-    }
-
-    _applyLayout() {
-        this.apply({
-        '.profileEntry': {left: 0, top: 'prev()', right: 0, height: device.platform === 'iOS' ? 40 : 48},
-        '.profileLabel': {left: 10, centerY: 0},
-        '#AddNewProfileButton': {centerX: 0, top: 'prev() 18'}
-        });
-    }
-
-    _applyStyles() {
-        this.apply({
-        '.profileLabel': {
-            font: device.platform === 'iOS' ? '17px .HelveticaNeueInterface-Regular' : 'medium 20px',
-            textColor: device.platform === 'iOS' ? 'rgb(22, 126, 251)' : '#212121'
-        }
-        });
     }
 }

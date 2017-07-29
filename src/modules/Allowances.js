@@ -60,11 +60,9 @@ function getAllowancesCollectionObject(items) {
             }
         }
     }).on('refresh', function() {
-        console.log("Refresh event listener activated!");
         // load the accounts again and refresh the view
         // disable the refresh indicator once complete
         getAccountItems(function (collectionItems) {
-            console.log("new account items retreived!");
             items = collectionItems;
             accountsCollectionView.refreshIndicator = true;
             accountsCollectionView.itemCount = items.length;

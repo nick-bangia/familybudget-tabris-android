@@ -38,7 +38,8 @@ function openNewPage(newPage) {
       // append it to the new page
       newPage.append(
         new ItemProfileSelector(refreshItemProfileSelector, {
-          left: 0, top: 16, right: 0, bottom: 0
+          left: 0, top: 5, right: 0, bottom: 0,
+          background: '#f5f5f5'
         }
       ));
       break;
