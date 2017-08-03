@@ -8,11 +8,10 @@ var types = typesEnum.GetLineItemTypes();
 var statuses = statusesEnum.GetStatuses();
 
 module.exports = class ItemProfile extends Composite {
-
+    
     constructor(profile, refreshSelector, properties) {
         super(properties);
         var isNew = typeof profile === "undefined";
-        var subcategoriesForChosenCategory = [{name: '', key: '-1', categoryKey: '-1'}];
         this._createUI(profile, refreshSelector, isNew);
         this._applyLayout(isNew);
     }
@@ -32,6 +31,9 @@ module.exports = class ItemProfile extends Composite {
     }
 
     _createUI(profile, refreshSelector, isNew) {
+        // initialize the subcategories list
+        var subcategoriesForChosenCategory = [{name: '', key: '-1', categoryKey: '-1'}];
+        
         // create the UI elements to edit or create a new Item Profile
         if (isNew) {
             // Item Profile Name
