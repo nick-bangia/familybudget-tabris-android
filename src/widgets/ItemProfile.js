@@ -6,13 +6,13 @@ const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui} = 
 
 var types = typesEnum.GetLineItemTypes();
 var statuses = statusesEnum.GetStatuses();
-var subcategoriesForChosenCategory = [{name: '', key: '-1', categoryKey: '-1'}];
 
 module.exports = class ItemProfile extends Composite {
 
     constructor(profile, refreshSelector, properties) {
         super(properties);
         var isNew = typeof profile === "undefined";
+        var subcategoriesForChosenCategory = [{name: '', key: '-1', categoryKey: '-1'}];
         this._createUI(profile, refreshSelector, isNew);
         this._applyLayout(isNew);
     }
