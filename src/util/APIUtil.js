@@ -32,6 +32,22 @@ function getPaymentMethods(externalCallback) {
     executeRequest(paymentMethodsUrl, constructAuthorizedGetRequestOptions(), null, externalCallback);
 }
 
+function getCategories(externalCallback) {
+    
+    // construct the categories URL
+    var categoriesUrl = apiConfig.baseUrl + apiConfig.categoriesUri;
+
+    executeRequest(categoriesUrl, constructAuthorizedGetRequestOptions(), null, externalCallback);
+}
+
+function getSubcategories(externalCallback) {
+    
+    // construct the categories URL
+    var subcategoriesUrl = apiConfig.baseUrl + apiConfig.subcategoriesUri;
+
+    executeRequest(subcategoriesUrl, constructAuthorizedGetRequestOptions(), null, externalCallback);
+}
+
 function executeAllowancesRequest(refreshAllowancesUrl, getAllowancesUrl, requestOptions, externalCallback) {
     
     return fetch(refreshAllowancesUrl, requestOptions)
@@ -104,4 +120,6 @@ function saveAccessKeys(data, externalCallback) {
 exports.login = login;
 exports.getAllowances = getAllowances;
 exports.getPaymentMethods = getPaymentMethods;
+exports.getCategories = getCategories;
+exports.getSubcategories = getSubcategories;
 

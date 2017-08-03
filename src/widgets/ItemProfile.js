@@ -6,6 +6,7 @@ const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui} = 
 
 var types = typesEnum.GetLineItemTypes();
 var statuses = statusesEnum.GetStatuses();
+var subcategoriesForChosenCategory = [{name: '', key: '-1', categoryKey: '-1'}];
 
 module.exports = class ItemProfile extends Composite {
 
@@ -14,6 +15,20 @@ module.exports = class ItemProfile extends Composite {
         var isNew = typeof profile === "undefined";
         this._createUI(profile, refreshSelector, isNew);
         this._applyLayout(isNew);
+    }
+
+    _buildSubcategoriesForCategory(categoryKey) {
+        var allActiveSubcategories = dataUtil.GetSubcategories();
+        var subcategoriesForCategory = [];
+
+        // loop through subcategories and set up the subcategory picker with this categories members
+        for (var i = 0; i < allActiveSubcategories.length; i++) {
+            if (allActiveSubcategories[i].categoryKey == categoryKey) {
+                subcategoriesForCategory.push(allActiveSubcategories[i]);
+            }
+        }
+
+        return subcategoriesForCategory;
     }
 
     _createUI(profile, refreshSelector, isNew) {
@@ -30,6 +45,42 @@ module.exports = class ItemProfile extends Composite {
                 message: 'Choose a name'
             }).appendTo(this);
         }
+
+        // Category
+        new TextView({
+            id: "categoryLabel",
+            alignment: 'left',
+            text: "Category:"
+        }).appendTo(this);
+        new Picker({
+            id: "categoryPicker",
+            itemCount: dataUtil.GetCategories().length,
+            itemText: index => dataUtil.GetCategories()[index].categoryName
+        })
+        .on('select', ({index}) => {
+            console.log("Category index chosen: " + index);
+            if (typeof index !== "undefined") {
+                var thisCategory = dataUtil.GetCategories()[index];
+                subcategoriesForChosenCategory = this._buildSubcategoriesForCategory(thisCategory.key);
+                
+                // set the subcategory picker with the data
+                this.children('#subcategoryPicker').first().itemCount = subcategoriesForChosenCategory.length;
+                this.children('#subcategoryPicker').first().itemText = index => subcategoriesForChosenCategory[index].name;
+            }
+        })
+        .appendTo(this);
+
+        // Subcategory
+         new TextView({
+            id: "subcategoryLabel",
+            alignment: 'left',
+            text: "Subcategory:"
+        }).appendTo(this);
+        new Picker({
+            id: "subcategoryPicker",
+            itemCount: subcategoriesForChosenCategory.length,
+            itemText: index => subcategoriesForChosenCategory[index].name
+        }).appendTo(this);
 
         // Line Item Type
         new TextView({
@@ -55,7 +106,7 @@ module.exports = class ItemProfile extends Composite {
             itemText: index => dataUtil.GetPaymentMethods()[index].paymentMethodName
         }).appendTo(this);
 
-        // Statuse
+        // Status
         new TextView({
             id: "statusLabel",
             alignment: "left",
@@ -77,6 +128,8 @@ module.exports = class ItemProfile extends Composite {
         .on('select', () => {
             
             var thisProfile = {
+                category: (dataUtil.GetCategories()[this.children('#categoryPicker').first().selectionIndex]).key,
+                subcategory: (subcategoriesForChosenCategory[this.children('#subcategoryPicker').first().selectionIndex]).key,
                 type: types[this.children('#typePicker').first().selectionIndex].typeId,
                 paymentMethod: (dataUtil.GetPaymentMethods()[this.children('#pmPicker').first().selectionIndex]).key,
                 status: statuses[this.children('#statusPicker').first().selectionIndex].statusId
@@ -153,8 +206,26 @@ module.exports = class ItemProfile extends Composite {
             })
             .appendTo(this);
 
-            // set the field values
-            // find the indexes chosen
+            // set the field values by finding the indexes chosen and mapping them to the list values
+            // set the category from the chosen profile
+            var categoryIndexChosen = dataUtil.GetCategories().findIndex(function (aCategory) {
+                return aCategory.key == profile.category;
+            });
+            this.children('#categoryPicker').first().selectionIndex = categoryIndexChosen;            
+            
+            // set the subcategory based on the chosen category, if a key is specified
+            if (profile.subcategory != '-1' && profile.category != '-1') {
+                subcategoriesForChosenCategory = this._buildSubcategoriesForCategory(profile.category);
+                var subcategoryIndexChosen = subcategoriesForChosenCategory.findIndex(function (aSubcategory) {
+                    return aSubcategory.key == profile.subcategory;
+                });
+
+                // once the subcategory index is found, set the picker's state to the correct values
+                this.children('#subcategoryPicker').first().itemCount = subcategoriesForChosenCategory.length;
+                this.children('#subcategoryPicker').first().itemText = index => subcategoriesForChosenCategory[index].name;
+                this.children('#subcategoryPicker').first().selectionIndex = subcategoryIndexChosen;
+            }
+
             var typeIndexChosen = types.findIndex(function (aType) {
                 return aType.typeId == profile.type;
             });
@@ -175,7 +246,11 @@ module.exports = class ItemProfile extends Composite {
         this.apply({
             '#profileNameLabel': {left: 10, top: 0, width: 120},
             '#profileNameInput': {left: '#profileNameLabel 10', right: 10, baseline: '#profileNameLabel'},
-            '#typeLabel': {left: 10, top: '#profileNameLabel 18', width: 120},
+            '#categoryLabel': {left: 10, top: '#profileNameLabel 18', width: 120},
+            '#categoryPicker': {left: '#categoryLabel 10', right: 10, baseline: '#categoryLabel'},
+            '#subcategoryLabel': {left: 10, top: '#categoryLabel 18', width: 120},
+            '#subcategoryPicker': {left: '#subcategoryLabel 10', right: 10, baseline: '#subcategoryLabel'},
+            '#typeLabel': {left: 10, top: '#subcategoryLabel 18', width: 120},
             '#typePicker': {left: '#typeLabel 10', right: 10, baseline: '#typeLabel'},
             '#pmLabel': {left: 10, top: '#typeLabel 18', width: 120},
             '#pmPicker': {left: '#pmLabel 10', right: 10, baseline: '#pmLabel'},

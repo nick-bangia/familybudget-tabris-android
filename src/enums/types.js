@@ -1,5 +1,9 @@
 const TYPES = [
     {
+        name: '',
+        typeId: -1
+    },
+    {
         name: "Expense",
         typeId: 0
     },

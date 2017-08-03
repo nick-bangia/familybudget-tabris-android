@@ -1,5 +1,9 @@
 const STATUSES = [
     {
+        name: '',
+        statusId: -1
+    },
+    {
         name: "Reconciled",
         statusId: 0
     },

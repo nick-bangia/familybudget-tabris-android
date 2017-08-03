@@ -58,7 +58,9 @@ module.exports = class ItemProfileSelector extends Composite {
                                 new Page({
                                     title: view.item.profileName
                                 }),
-                                {profileName: view.item.profileName, 
+                                {profileName: view.item.profileName,
+                                 category: view.item.category,
+                                 subcategory: view.item.subcategory,
                                  type: view.item.type, 
                                  paymentMethod: view.item.paymentMethod, 
                                  status: view.item.status}

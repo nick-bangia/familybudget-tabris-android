@@ -3,5 +3,7 @@
     "loginUri": "/login",
     "refreshAllowancesUri": "/refreshAllowances",
     "budgetAllowancesUri": "/allowances",
-    "paymentMethodsUri": "/paymentMethods/all"
+    "paymentMethodsUri": "/paymentMethods/all",
+    "categoriesUri": "/categories/all",
+    "subcategoriesUri": "/subcategories/all"
 }
