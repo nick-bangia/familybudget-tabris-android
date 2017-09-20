@@ -48,6 +48,14 @@ function getSubcategories(externalCallback) {
     executeRequest(subcategoriesUrl, constructAuthorizedGetRequestOptions(), null, externalCallback);
 }
 
+function addNewItem(payload, externalCallback) {
+    
+    // construct the add new item url
+    var addNewItemUrl = apiConfig.baseUrl + apiConfig.addNewItemUri;
+
+    executeRequest(addNewItemUrl, constructAuthorizedPutRequestOptions(payload), null, externalCallback);
+}
+
 function executeAllowancesRequest(refreshAllowancesUrl, getAllowancesUrl, requestOptions, externalCallback) {
     
     return fetch(refreshAllowancesUrl, requestOptions)
@@ -97,6 +105,25 @@ function constructAuthorizedGetRequestOptions() {
 
     // construct the request options
     var requestOptions = { method: 'GET',
+                           headers: authorizationHeader,
+                           mode: 'cors',
+                           cache: 'default' };
+
+    return requestOptions;
+}
+
+function constructAuthorizedPutRequestOptions(payload) {
+    var authorizationHeader = new Headers();
+    authorizationHeader.append("x_access_token", localStorage.getItem("access_token"));
+
+    // construct the body of the put request
+    var body = {
+        "data": [payload] };
+    
+    var bodyJSON = JSON.stringify(body);
+
+    // construct the request options
+    var requestOptions = { method: "PUT",
                            headers: authorizationHeader,
                            mode: 'cors',
                            cache: 'default' };

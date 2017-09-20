@@ -200,7 +200,7 @@ module.exports = class ItemProfile extends Composite {
                             localStorage.setItem("itemProfiles", JSON.stringify(itemProfiles));
                         }
 
-                        // refresh the items selectorsonce done
+                        // refresh the items selectors once done
                         refreshSelector();
                     }
                 })

@@ -1,6 +1,7 @@
 var apiUtil = require("../util/APIUtil.js");
 var PageSelector = require("../widgets/PageSelector.js"); 
 var ItemProfileSelector = require("../widgets/ItemProfileSelector.js");
+var AddNewItem = require("../widgets/AddNewItem.js");
 var formatUtil = require("../util/FormatUtil.js");
 var allowancesModule = require("./Allowances.js");
 var timeAgo = require("time-ago");
@@ -28,10 +29,9 @@ function openNewPage(newPage) {
       allowancesModule.LoadAccounts(newPage);
       break;
     case "Add New Items":
-      new AlertDialog({
-        message: "Coming soon!",
-        buttons: {ok: "Got it!"}
-      }).open();
+      newPage.append(
+        new AddNewItem(loadAccounts)
+      );
       break;
     case "Item Profiles":
       // build the ItemProfiles selection composite widget and
@@ -55,6 +55,17 @@ function refreshItemProfileSelector() {
   });
   newPage.appendTo(navigationView);
   
+  openNewPage(newPage);
+}
+
+function loadAccounts(responseData) {
+  // load the accounts as a callback
+  navigationView.pages().dispose();
+  var newPage = new Page({
+    title: "Accounts"
+  });
+  newPage.appendTo(navigationView);
+
   openNewPage(newPage);
 }
 
