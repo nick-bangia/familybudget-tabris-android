@@ -126,7 +126,8 @@ function constructAuthorizedPutRequestOptions(payload) {
     var requestOptions = { method: "PUT",
                            headers: authorizationHeader,
                            mode: 'cors',
-                           cache: 'default' };
+                           cache: 'default',
+                           body: bodyJSON };
 
     return requestOptions;
 }
