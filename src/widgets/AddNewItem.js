@@ -11,7 +11,7 @@ module.exports = class AddNewItem extends Composite {
         this._applyLayout();
     }
 
-    _createUI() { 
+    _createUI(loadAccounts) { 
         // create the UI elements to edit or create a new Item
         var itemProfiles = JSON.parse(localStorage.getItem("itemProfiles"));
 
@@ -23,6 +23,7 @@ module.exports = class AddNewItem extends Composite {
         }).appendTo(this);
         new Picker({
             id: "profilePicker",
+            alignment: 'left',
             itemCount: itemProfiles.length,
             itemText: index => itemProfiles[index].profileName
         }).appendTo(this);
@@ -35,6 +36,7 @@ module.exports = class AddNewItem extends Composite {
        }).appendTo(this);
        new TextInput({
            id: "descriptionInput",
+           alignment: 'left',
            message: "What is the item?"
        }).appendTo(this);
 
@@ -45,7 +47,9 @@ module.exports = class AddNewItem extends Composite {
            text: "Amount:"
        }).appendTo(this);
        new TextInput({    
-           id: "amountInput"
+           id: "amountInput",
+           alignment: 'left',
+           message: "$100.00"
        }).appendTo(this);
 
         // save button
@@ -89,11 +93,11 @@ module.exports = class AddNewItem extends Composite {
     _applyLayout() {
         this.apply({
             '#profileLabel': {left: 10, top: 0, width: 120},
-            '#profilePicker': {left: '#profileLabel 10', right: 10, width: 120, baseline: '#profileLabel'},
+            '#profilePicker': {left: '#profileLabel 10', right: 10, baseline: '#profileLabel'},
             '#descriptionLabel': {left: 10, top: '#profileLabel 18', width: 120},
-            '#descriptionInput': {left: '#descriptionLabel 10', right: 10, width: 200, baseline: '#descriptionLabel'},
+            '#descriptionInput': {left: '#descriptionLabel 10', right: 10, baseline: '#descriptionLabel'},
             '#amountLabel': {left: 10, top: '#descriptionLabel 18', width: 120},
-            '#amountInput': {left: '#amountLabel 10', right: 10, width: 120, baseline: '#amountLabel'},
+            '#amountInput': {left: '#amountLabel 10', right: 10, baseline: '#amountLabel'},
             '#saveButton': {centerX: -50,  top: '#amountLabel 18'}
         });
     }

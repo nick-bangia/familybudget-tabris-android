@@ -30,7 +30,9 @@ function openNewPage(newPage) {
       break;
     case "Add New Items":
       newPage.append(
-        new AddNewItem(loadAccounts)
+        new AddNewItem(loadAccounts, {
+          left: 0, top: 16, right: 0, bottom: 0
+        })
       );
       break;
     case "Item Profiles":
