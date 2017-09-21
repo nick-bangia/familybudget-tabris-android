@@ -149,4 +149,5 @@ exports.getAllowances = getAllowances;
 exports.getPaymentMethods = getPaymentMethods;
 exports.getCategories = getCategories;
 exports.getSubcategories = getSubcategories;
+exports.addNewItem = addNewItem;
 
