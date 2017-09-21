@@ -89,11 +89,11 @@ module.exports = class AddNewItem extends Composite {
     _applyLayout() {
         this.apply({
             '#profileLabel': {left: 10, top: 0, width: 120},
-            '#profilePicker': {left: '#profileLabel 10', right: 10, width: 120},
+            '#profilePicker': {left: '#profileLabel 10', right: 10, width: 120, baseline: '#profileLabel'},
             '#descriptionLabel': {left: 10, top: '#profileLabel 18', width: 120},
-            '#descriptionInput': {left: '#descriptionLabel 10', right: 10, width: 200},
+            '#descriptionInput': {left: '#descriptionLabel 10', right: 10, width: 200, baseline: '#descriptionLabel'},
             '#amountLabel': {left: 10, top: '#descriptionLabel 18', width: 120},
-            '#amountInput': {left: '#amountLabel 10', right: 10, width: 120},
+            '#amountInput': {left: '#amountLabel 10', right: 10, width: 120, baseline: '#amountLabel'},
             '#saveButton': {centerX: -50,  top: '#amountLabel 18'}
         });
     }
