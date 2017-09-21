@@ -35,7 +35,7 @@ module.exports = class AddNewItem extends Composite {
        }).appendTo(this);
        new TextInput({
            id: "descriptionInput",
-           message: "Enter a description of the new item"
+           message: "What is the item?"
        }).appendTo(this);
 
        // amount
@@ -59,7 +59,7 @@ module.exports = class AddNewItem extends Composite {
             
             var today = new Date();
             var chosenProfile = itemProfiles[this.children('#profilePicker').first().selectionIndex];
-            var amount = Number(this.children('#amountText').first().text);
+            var amount = Number(this.children('#amountInput').first().text);
             var subtypeId = amount < 0 ? 0 : 1;
             var quarterId = enumUtil.GetQuarterForMonth(today.getMonth() + 1);
 
@@ -69,7 +69,7 @@ module.exports = class AddNewItem extends Composite {
                 "dayOfWeekId":      Math.floor(today.getDay() + 1),
                 "year":             Math.floor(today.getFullYear()),
                 "subcategoryKey":   chosenProfile.subcategory,
-                "description":      this.children('#descriptionText').first().text,
+                "description":      this.children('#descriptionInput').first().text,
                 "amount":           amount,
                 "typeId":           chosenProfile.type,
                 "subtypeId":        subtypeId,
@@ -89,11 +89,11 @@ module.exports = class AddNewItem extends Composite {
     _applyLayout() {
         this.apply({
             '#profileLabel': {left: 10, top: 0, width: 120},
-            '#profilePicker': {left: '#profileLabel 10', right: 10, baseline: '#profileLabel'},
+            '#profilePicker': {left: '#profileLabel 10', right: 10, width: 120},
             '#descriptionLabel': {left: 10, top: '#profileLabel 18', width: 120},
-            '#descriptionInput': {left: '#descriptionLabel 10', right: 10, baseline: '#descriptionLabel'},
+            '#descriptionInput': {left: '#descriptionLabel 10', right: 10, width: 200},
             '#amountLabel': {left: 10, top: '#descriptionLabel 18', width: 120},
-            '#amountInput': {left: '#amountLabel 10', right: 10, baseline: '#amountLabel'},
+            '#amountInput': {left: '#amountLabel 10', right: 10, width: 120},
             '#saveButton': {centerX: -50,  top: '#amountLabel 18'}
         });
     }
