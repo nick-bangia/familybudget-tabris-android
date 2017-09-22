@@ -4,7 +4,7 @@
   "description": "An android client for the Family Budget API",
   "main": "./src/pages/loginPage.js",
   "dependencies": {
-    "tabris": "2.0.0-rc2",
+    "tabris": "^2.1.0",
     "tabris-js-node": "^0.1.0",
     "base-64": "^0.1.0",
     "utf8": "^2.1.2",

@@ -62,6 +62,7 @@ function refreshItemProfileSelector() {
 
 function loadAccounts(responseData) {
   // load the accounts as a callback
+  console.log("In loadAccounts function now...");
   navigationView.pages().dispose();
   var newPage = new Page({
     title: "Accounts"

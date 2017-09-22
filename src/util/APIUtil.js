@@ -66,7 +66,7 @@ function executeAllowancesRequest(refreshAllowancesUrl, getAllowancesUrl, reques
 }
 
 function executeRequest(url, requestOptions, callback, externalCallback) {
-    
+   
     // make the request
     fetch(url, requestOptions)
     .then(function(response) {
@@ -85,6 +85,8 @@ function executeRequest(url, requestOptions, callback, externalCallback) {
         }
     })
     .then(function(data) {
+        console.log("data from response: ");
+        console.log(JSON.stringify(data));
         if (data) {
            if (callback) {
                callback(data, externalCallback);
@@ -113,21 +115,21 @@ function constructAuthorizedGetRequestOptions() {
 }
 
 function constructAuthorizedPutRequestOptions(payload) {
-    var authorizationHeader = new Headers();
-    authorizationHeader.append("x_access_token", localStorage.getItem("access_token"));
+    var putHeaders = new Headers();
+    putHeaders.append("x_access_token", localStorage.getItem("access_token"));
+    putHeaders.append("Content-Type", 'application/json');
+
 
     // construct the body of the put request
     var body = {
         "data": [payload] };
-    
-    var bodyJSON = JSON.stringify(body);
 
     // construct the request options
-    var requestOptions = { method: "PUT",
-                           headers: authorizationHeader,
+    var requestOptions = { method: 'PUT',
+                           headers: putHeaders,
                            mode: 'cors',
                            cache: 'default',
-                           body: bodyJSON };
+                           body: JSON.stringify(body) };
 
     return requestOptions;
 }
