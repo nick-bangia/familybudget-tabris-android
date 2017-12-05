@@ -85,8 +85,6 @@ function executeRequest(url, requestOptions, callback, externalCallback) {
         }
     })
     .then(function(data) {
-        console.log("data from response: ");
-        console.log(JSON.stringify(data));
         if (data) {
            if (callback) {
                callback(data, externalCallback);

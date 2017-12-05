@@ -59,6 +59,7 @@ module.exports = class ItemProfileSelector extends Composite {
                                     title: view.item.profileName
                                 }),
                                 {profileName: view.item.profileName,
+                                 order: view.item.order,
                                  category: view.item.category,
                                  subcategory: view.item.subcategory,
                                  type: view.item.type, 

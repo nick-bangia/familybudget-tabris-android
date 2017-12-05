@@ -1,6 +1,8 @@
 var typesEnum = require("../enums/types.js");
 var statusesEnum = require("../enums/statuses.js");
 var dataUtil = require("../util/DataUtil.js");
+var formatUtil = require("../util/FormatUtil.js");
+var alphasort = require("alphanumeric-sort").compare;
 
 const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui} = require("tabris");
 
@@ -47,6 +49,17 @@ module.exports = class ItemProfile extends Composite {
                 message: 'Choose a name'
             }).appendTo(this);
         }
+
+        // Order
+        new TextView({
+            id: "orderLabel",
+            alignment: 'left',
+            text: 'Order:'
+        }).appendTo(this);
+        new TextInput({
+            id: 'orderInput',
+            message: 'Any alphanumeric character(s)'
+        }).appendTo(this);
 
         // Category
         new TextView({
@@ -130,6 +143,7 @@ module.exports = class ItemProfile extends Composite {
         .on('select', () => {
             
             var thisProfile = {
+                order: this.children('#orderInput').first().text,
                 category: (dataUtil.GetCategories()[this.children('#categoryPicker').first().selectionIndex]).key,
                 subcategory: (subcategoriesForChosenCategory[this.children('#subcategoryPicker').first().selectionIndex]).key,
                 type: types[this.children('#typePicker').first().selectionIndex].typeId,
@@ -162,6 +176,9 @@ module.exports = class ItemProfile extends Composite {
                 // set the profile at the derived index
                 itemProfiles[profileIndex] = thisProfile;
             }
+
+            // resort the itemProfiles before persisting to local storage
+            itemProfiles.sort(function (a,b) { return alphasort(a.order, b.order); });
 
             // persist the updated profiles to localStorage
             localStorage.setItem("itemProfiles", JSON.stringify(itemProfiles));
@@ -209,6 +226,10 @@ module.exports = class ItemProfile extends Composite {
             .appendTo(this);
 
             // set the field values by finding the indexes chosen and mapping them to the list values
+
+            // set the order
+            this.children('#orderInput').first().text = profile.order;
+            
             // set the category from the chosen profile
             var categoryIndexChosen = dataUtil.GetCategories().findIndex(function (aCategory) {
                 return aCategory.key == profile.category;
@@ -248,7 +269,9 @@ module.exports = class ItemProfile extends Composite {
         this.apply({
             '#profileNameLabel': {left: 10, top: 0, width: 120},
             '#profileNameInput': {left: '#profileNameLabel 10', right: 10, baseline: '#profileNameLabel'},
-            '#categoryLabel': {left: 10, top: '#profileNameLabel 18', width: 120},
+            '#orderLabel': {left: 10, top: '#profileNameLabel 18', width: 120},
+            '#orderInput': {left: '#orderLabel 10', right: 10, baseline: '#orderLabel'},
+            '#categoryLabel': {left: 10, top: '#orderLabel 18', width: 120},
             '#categoryPicker': {left: '#categoryLabel 10', right: 10, baseline: '#categoryLabel'},
             '#subcategoryLabel': {left: 10, top: '#categoryLabel 18', width: 120},
             '#subcategoryPicker': {left: '#subcategoryLabel 10', right: 10, baseline: '#subcategoryLabel'},

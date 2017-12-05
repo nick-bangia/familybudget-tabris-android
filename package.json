@@ -8,7 +8,8 @@
     "tabris-js-node": "^0.1.0",
     "base-64": "^0.1.0",
     "utf8": "^2.1.2",
-    "time-ago": "^0.1.0"
+    "time-ago": "^0.1.0",
+    "alphanumeric-sort": "^0.0.1"
   },
   "repository": {
     "type": "git",
