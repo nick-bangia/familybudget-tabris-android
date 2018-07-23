@@ -1,11 +1,8 @@
-var apiUtil = require("../util/APIUtil.js");
 var PageSelector = require("../widgets/PageSelector.js"); 
 var ItemProfileSelector = require("../widgets/ItemProfileSelector.js");
+var ItemProfile = require("../widgets/ItemProfile.js");
 var AddNewItem = require("../widgets/AddNewItem.js");
-var formatUtil = require("../util/FormatUtil.js");
 var allowancesModule = require("./Allowances.js");
-var timeAgo = require("time-ago");
-var ta = timeAgo();
 
 const {CollectionView, Composite, ImageView, NavigationView, Page, TextView, WebView, ui, AlertDialog} = require('tabris');
 
@@ -30,7 +27,7 @@ function openNewPage(newPage) {
       break;
     case "Add New Items":
       newPage.append(
-        new AddNewItem(loadAccounts, {
+        new AddNewItem(loadAccounts, openCustomProfile, {
           left: 0, top: 16, right: 0, bottom: 0
         })
       );
@@ -70,6 +67,19 @@ function loadAccounts(responseData) {
   newPage.appendTo(navigationView);
 
   openNewPage(newPage);
+}
+
+function openCustomProfile(detailsPage, profile) {
+  navigationView.pageAnimation = 'none';
+  detailsPage.appendTo(navigationView);
+  navigationView.pageAnimation = 'default'; 
+
+  // create the Item Profile and append it to the page
+  new ItemProfile(
+    profile,
+    null,
+    { left: 0, top: 16, right: 0, bottom: 0 }
+  ).appendTo(detailsPage);
 }
 
 function loadNewCollection(pageTitle, collection) {

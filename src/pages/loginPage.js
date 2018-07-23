@@ -69,7 +69,7 @@ scrollView.apply({
     '#passwordLabel': {left: 10, top: '#usernameLabel 18', width: 120},
     '#passwordInput': {left: '#passwordLabel 10', right: 10, baseline: '#passwordLabel'},
     '#rememberCheckbox': {left: 10, top: '#passwordLabel 18', width: 240},
-    '#loginButton': {left: 10, right: 10, top: '#rememberCheckbox 18'}
+    '#loginButton': {centerY: 250, left: 10, right: 10, height: 62}
 });
 
 // loginToApi function - calls on the loginModule to login to the API and begin the application flow

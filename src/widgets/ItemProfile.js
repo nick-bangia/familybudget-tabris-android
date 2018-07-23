@@ -11,11 +11,18 @@ var statuses = statusesEnum.GetStatuses();
 
 module.exports = class ItemProfile extends Composite {
     
-    constructor(profile, refreshSelector, properties) {
+    constructor(profile, finished, properties) {
         super(properties);
         var isNew = typeof profile === "undefined";
-        this._createUI(profile, refreshSelector, isNew);
-        this._applyLayout(isNew);
+        var isCustom = false;
+
+        // check if the profile is a custom one, if it isn't a new one
+        if (!isNew) {
+            isCustom = profile.profileName == "Custom";
+        }
+
+        this._createUI(profile, finished, isNew, isCustom);
+        this._applyLayout(isNew, isCustom);
     }
 
     _buildSubcategoriesForCategory(categoryKey) {
@@ -32,7 +39,7 @@ module.exports = class ItemProfile extends Composite {
         return subcategoriesForCategory;
     }
 
-    _createUI(profile, refreshSelector, isNew) {
+    _createUI(profile, finished, isNew, isCustom) {
         // initialize the subcategories list
         var subcategoriesForChosenCategory = [{name: '', key: '-1', categoryKey: '-1'}];
         
@@ -50,16 +57,18 @@ module.exports = class ItemProfile extends Composite {
             }).appendTo(this);
         }
 
-        // Order
-        new TextView({
-            id: "orderLabel",
-            alignment: 'left',
-            text: 'Order:'
-        }).appendTo(this);
-        new TextInput({
-            id: 'orderInput',
-            message: 'Any alphanumeric character(s)'
-        }).appendTo(this);
+        if (!isCustom) {
+            // Order
+            new TextView({
+                id: "orderLabel",
+                alignment: 'left',
+                text: 'Order:'
+            }).appendTo(this);
+            new TextInput({
+                id: 'orderInput',
+                message: 'Any alphanumeric character(s)'
+            }).appendTo(this);
+        }
 
         // Category
         new TextView({
@@ -143,7 +152,6 @@ module.exports = class ItemProfile extends Composite {
         .on('select', () => {
             
             var thisProfile = {
-                order: this.children('#orderInput').first().text,
                 category: (dataUtil.GetCategories()[this.children('#categoryPicker').first().selectionIndex]).key,
                 subcategory: (subcategoriesForChosenCategory[this.children('#subcategoryPicker').first().selectionIndex]).key,
                 type: types[this.children('#typePicker').first().selectionIndex].typeId,
@@ -151,45 +159,57 @@ module.exports = class ItemProfile extends Composite {
                 status: statuses[this.children('#statusPicker').first().selectionIndex].statusId
             };
 
-            var itemProfiles = JSON.parse(localStorage.getItem("itemProfiles"));
+            // if editing a normal profile, include the order field, and process the profile as a savedProfile
+            if (!isCustom) {
+                thisProfile.order = this.children('#orderInput').first().text;
 
-            if (isNew) {
-                // if the profile is new, save the name, and 
-                // create the object and add it to the list in storage
-                thisProfile.profileName = this.children('#profileNameInput').first().text;
+                var itemProfiles = JSON.parse(localStorage.getItem("itemProfiles"));
 
-                if (itemProfiles) {
-                    itemProfiles.push(thisProfile);
+                if (isNew) {
+                    // if the profile is new, save the name, and 
+                    // create the object and add it to the list in storage
+                    thisProfile.profileName = this.children('#profileNameInput').first().text;
+
+                    if (itemProfiles) {
+                        itemProfiles.push(thisProfile);
+                    } else {
+                        // no profiles exist yet, so create a new list and push it
+                        itemProfiles = [thisProfile];
+                    }
                 } else {
-                    // no profiles exist yet, so create a new list and push it
-                    itemProfiles = [thisProfile];
+                    // if the profile already exists, find it in the list and replace it
+                    var profileIndex = itemProfiles.findIndex(function (aProfile) {
+                        return aProfile.profileName == profile.profileName;
+                    });
+                    
+                    // set the name of the profile
+                    thisProfile.profileName = profile.profileName;
+                    
+                    // set the profile at the derived index
+                    itemProfiles[profileIndex] = thisProfile;
                 }
+
+                // resort the itemProfiles before persisting to local storage
+                itemProfiles.sort(function (a,b) { return alphasort(a.order, b.order); });
+
+                // persist the updated profiles to localStorage
+                localStorage.setItem("itemProfiles", JSON.stringify(itemProfiles));
+
+                // refresh the item selectors once done
+                finished();
             } else {
-                // if the profile already exists, find it in the list and replace it
-                var profileIndex = itemProfiles.findIndex(function (aProfile) {
-                    return aProfile.profileName == profile.profileName;
-                });
+                // if custom, save the profile fields to the customizedProfile object in memory, then dispose of the page
+                thisProfile.isReady = true;
+                localStorage.setItem("customizedProfile", JSON.stringify(thisProfile));
                 
-                // set the name of the profile
-                thisProfile.profileName = profile.profileName;
-                
-                // set the profile at the derived index
-                itemProfiles[profileIndex] = thisProfile;
+                let navigationView = ui.contentView.find('NavigationView').first();
+                navigationView.pages(page => page.title == "Item Details").dispose();
             }
-
-            // resort the itemProfiles before persisting to local storage
-            itemProfiles.sort(function (a,b) { return alphasort(a.order, b.order); });
-
-            // persist the updated profiles to localStorage
-            localStorage.setItem("itemProfiles", JSON.stringify(itemProfiles));
-
-            // refresh the item selectors once done
-            refreshSelector();
         })
         .appendTo(this);
 
         // if not a new profile, add the delete button and set the values
-        if (!isNew) {
+        if (!isNew && !isCustom) {
             // if not new, show delete button
             new Button({
                 id: "deleteButton",
@@ -218,7 +238,7 @@ module.exports = class ItemProfile extends Composite {
                         }
 
                         // refresh the items selectors once done
-                        refreshSelector();
+                        finished();
                     }
                 })
                 .open();
@@ -227,8 +247,10 @@ module.exports = class ItemProfile extends Composite {
 
             // set the field values by finding the indexes chosen and mapping them to the list values
 
-            // set the order
-            this.children('#orderInput').first().text = profile.order;
+            // set the order, if included in the field list
+            if (!isCustom) {
+                this.children('#orderInput').first().text = profile.order;
+            }
             
             // set the category from the chosen profile
             var categoryIndexChosen = dataUtil.GetCategories().findIndex(function (aCategory) {
@@ -265,7 +287,7 @@ module.exports = class ItemProfile extends Composite {
         }
     }
 
-    _applyLayout(isNew) {
+    _applyLayout(isNew, isCustom) {
         this.apply({
             '#profileNameLabel': {left: 10, top: 0, width: 120},
             '#profileNameInput': {left: '#profileNameLabel 10', right: 10, baseline: '#profileNameLabel'},
@@ -283,14 +305,14 @@ module.exports = class ItemProfile extends Composite {
             '#statusPicker': {left: '#statusLabel 10', right: 10, baseline: '#statusLabel'}
         });
 
-        if (isNew) {
+        if (isNew || isCustom) {
             this.apply({
-                '#saveButton': {centerX: 0, top: '#statusLabel 18'}
+                '#saveButton': {centerY: 250, left: 10, right: 10, height: 62}
             });
         } else {
             this.apply({
-                '#saveButton': {centerX: -50,  top: '#statusLabel 18'},
-                '#deleteButton': {centerX: 50,  top: '#statusLabel 18'}
+                '#saveButton': {centerY: 180, left: 10, right: 10, height: 62},
+                '#deleteButton': {centerY: 250, left: 10, right: 10, height: 62}
             });
         }
     }

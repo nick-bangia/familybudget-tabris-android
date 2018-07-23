@@ -1,19 +1,31 @@
 var apiUtil = require('../util/APIUtil.js');
 var enumUtil = require('../util/EnumUtil.js');
 
-const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui} = require("tabris");
+const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui, CheckBox} = require("tabris");
 
 module.exports = class AddNewItem extends Composite {
     
-    constructor(loadAccounts, properties) {
+    constructor(loadAccounts, openCustomProfile, properties) {
         super(properties);
-        this._createUI(loadAccounts);
+        this._createUI(loadAccounts, openCustomProfile);
         this._applyLayout();
     }
 
-    _createUI(loadAccounts) { 
+    _createUI(loadAccounts, openCustomProfile) { 
         // create the UI elements to edit or create a new Item
-        var itemProfiles = JSON.parse(localStorage.getItem("itemProfiles"));
+
+        // create a custom item profile to be used in adding new items
+        var customProfile = {
+            profileName: "Custom",
+        };
+
+        // load the the configured profiles into the array and then append the custom profile
+        var itemProfiles = [];
+        var savedProfiles = JSON.parse(localStorage.getItem("itemProfiles"));
+        savedProfiles.forEach(function(element) {
+            itemProfiles.push(element);
+        });
+        itemProfiles.push(customProfile);
 
         // Profile to use
         new TextView({
@@ -28,29 +40,45 @@ module.exports = class AddNewItem extends Composite {
             itemText: index => itemProfiles[index].profileName
         }).appendTo(this);
 
-       // description
-       new TextView({
-           id: "descriptionLabel",
-           alignment: 'left',
-           text: "Description:"
-       }).appendTo(this);
-       new TextInput({
-           id: "descriptionInput",
-           alignment: 'left',
-           message: "What is the item?"
-       }).appendTo(this);
+        // description
+        new TextView({
+            id: "descriptionLabel",
+            alignment: 'left',
+            text: "Description:"
+        }).appendTo(this);
+        new TextInput({
+            id: "descriptionInput",
+            alignment: 'left',
+            message: "What is the item?"
+        }).appendTo(this);
 
-       // amount
-       new TextView({
-           id: "amountLabel",
-           alignment: 'left',
-           text: "Amount:"
-       }).appendTo(this);
-       new TextInput({    
-           id: "amountInput",
-           alignment: 'left',
-           message: "$100.00"
-       }).appendTo(this);
+        // amount
+        new TextView({
+            id: "amountLabel",
+            alignment: 'left',
+            text: "Amount:"
+        }).appendTo(this);
+        new TextInput({    
+            id: "amountInput",
+            alignment: 'left',
+            message: "$100.00"
+        }).appendTo(this);
+
+        // credit
+        new CheckBox({
+            id: 'creditCheckbox',
+            text: "Credit?",
+            checked: false
+        })
+        .appendTo(this);
+
+        // tax deductible
+        new CheckBox({
+            id: 'deductibleCheckbox',
+            text: "Tax Deductible?",
+            checked: false
+        })
+        .appendTo(this);
 
         // save button
         new Button({
@@ -63,7 +91,8 @@ module.exports = class AddNewItem extends Composite {
             
             var today = new Date();
             var chosenProfile = itemProfiles[this.children('#profilePicker').first().selectionIndex];
-            var amount = Number(this.children('#amountInput').first().text);
+            var subTypeMultiplier = this.children('#creditCheckbox').first().checked ? 1 : -1;
+            var amount = Number(this.children('#amountInput').first().text) * subTypeMultiplier;
             var subtypeId = amount < 0 ? 0 : 1;
             var quarterId = enumUtil.GetQuarterForMonth(today.getMonth() + 1);
 
@@ -72,20 +101,41 @@ module.exports = class AddNewItem extends Composite {
                 "day":              Math.floor(today.getDate()),
                 "dayOfWeekId":      Math.floor(today.getDay() + 1),
                 "year":             Math.floor(today.getFullYear()),
-                "subcategoryKey":   chosenProfile.subcategory,
                 "description":      this.children('#descriptionInput').first().text,
                 "amount":           amount,
-                "typeId":           chosenProfile.type,
                 "subtypeId":        subtypeId,
                 "quarter":          quarterId,
-                "paymentMethodKey": chosenProfile.paymentMethod,
-                "statusId":         chosenProfile.status,
-                "isTaxDeductible":  false
+                "isTaxDeductible":  this.children('#deductibleCheckbox').first().checked
             };
 
-            // persist the new item via the API
-            apiUtil.addNewItem(newItem, loadAccounts);
+            // load the customizedProfile from memory
+            var customizedProfile = JSON.parse(localStorage.getItem("customizedProfile"));
+            if (chosenProfile.profileName != "Custom" || (customizedProfile != null && customizedProfile.isReady)) {
 
+                // if the customizedProfile has been loaded from user input, set the chosenProfile to it
+                if (customizedProfile != null && customizedProfile.isReady) {
+                    chosenProfile = customizedProfile;
+                }
+
+                newItem.subcategoryKey = chosenProfile.subcategory;
+                newItem.typeId = chosenProfile.type;
+                newItem.paymentMethodKey = chosenProfile.paymentMethod;
+                newItem.statusId = chosenProfile.status;
+
+                // lower the isReady flag
+                customizedProfile.isReady = false;
+                localStorage.setItem("customizedProfile", JSON.stringify(customizedProfile));
+
+                // persist the new item via the API
+                apiUtil.addNewItem(newItem, loadAccounts);
+            } else {
+                var page = new Page({
+                    title: "Item Details"
+                });
+
+                // open the details page to enter custom profile details
+                openCustomProfile(page, chosenProfile);
+            }
         })
         .appendTo(this);
     }
@@ -98,7 +148,9 @@ module.exports = class AddNewItem extends Composite {
             '#descriptionInput': {left: '#descriptionLabel 10', right: 10, baseline: '#descriptionLabel'},
             '#amountLabel': {left: 10, top: '#descriptionLabel 18', width: 120},
             '#amountInput': {left: '#amountLabel 10', right: 10, baseline: '#amountLabel'},
-            '#saveButton': {centerX: -50,  top: '#amountLabel 18'}
+            '#creditCheckbox': {left: 10, top: '#amountLabel 18', right: 10 },
+            '#deductibleCheckbox': {left: 10, top: '#creditCheckbox 18', right: 10 },
+            '#saveButton': {centerY: 250, left: 10, right: 10, height: 62}
         });
     }
 }

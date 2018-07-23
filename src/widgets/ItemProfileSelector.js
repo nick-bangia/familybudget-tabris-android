@@ -18,7 +18,7 @@ module.exports = class ItemProfileSelector extends Composite {
         this.append(
             new Button({
                 id: 'AddNewProfileButton',
-                top: '5', centerX: 0,
+                centerY: -250, left: 10, right: 10, height: 62,
                 text: 'Add New Profile',
                 background: '#007729',
                 textColor: 'white'
