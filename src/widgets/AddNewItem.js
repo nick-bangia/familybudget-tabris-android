@@ -22,9 +22,12 @@ module.exports = class AddNewItem extends Composite {
         // load the the configured profiles into the array and then append the custom profile
         var itemProfiles = [];
         var savedProfiles = JSON.parse(localStorage.getItem("itemProfiles"));
-        savedProfiles.forEach(function(element) {
-            itemProfiles.push(element);
-        });
+        // if there are any saved profiles, load them into the itemProfiles array
+        if (savedProfiles) {
+            savedProfiles.forEach(function(element) {
+                itemProfiles.push(element);
+            });
+        }
         itemProfiles.push(customProfile);
 
         // Profile to use
