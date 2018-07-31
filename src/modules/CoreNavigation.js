@@ -3,20 +3,35 @@ var ItemProfileSelector = require("../widgets/ItemProfileSelector.js");
 var ItemProfile = require("../widgets/ItemProfile.js");
 var AddNewItem = require("../widgets/AddNewItem.js");
 var allowancesModule = require("./Allowances.js");
+var SettingsPage = require("../pages/settingsPage.js");
 
-const {CollectionView, Composite, ImageView, NavigationView, Page, TextView, WebView, ui, AlertDialog} = require('tabris');
+const {Action, CollectionView, Composite, ImageView, NavigationView, Page, TextView, WebView, ui, AlertDialog} = require('tabris');
 
+// setup the navigation view
 let navigationView = new NavigationView({
     left: 0, top: 0, right: 0, bottom: 0,
     drawerActionVisible: true
   }).appendTo(ui.contentView);
 
+
+// setup the drawer
 ui.drawer.enabled = true;
 ui.drawer.append(
   new PageSelector(openNewPage, {
     left: 0, top: 16, right: 0, bottom: 0
   })
 );
+
+// create the settings icon action button
+new Action({
+  id: 'settingsAction',
+  title: 'Settings',
+  placementPriority: 'high',
+  image:  {
+    src: 'images/ic_settings.png'
+  }
+}).on('select', () => new SettingsPage().appendTo(navigationView))
+  .appendTo(navigationView); 
 
 function openNewPage(newPage) {
   
@@ -59,7 +74,6 @@ function refreshItemProfileSelector() {
 
 function loadAccounts(responseData) {
   // load the accounts as a callback
-  console.log("In loadAccounts function now...");
   navigationView.pages().dispose();
   var newPage = new Page({
     title: "Accounts"
@@ -90,5 +104,5 @@ function loadNewCollection(pageTitle, collection) {
   collection.appendTo(newPage);
 }
 
-exports.LoadNewAllowancesPage = loadNewCollection;
+exports.LoadNewCollectionPage = loadNewCollection;
 exports.OpenPage = openNewPage;

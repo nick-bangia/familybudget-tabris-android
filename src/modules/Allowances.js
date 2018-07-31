@@ -1,4 +1,4 @@
-var apiUtil = require("../util/APIUtil.js");
+var apiUtil = require("../util/BudgetAPIUtil.js");
 var formatUtil = require('../util/FormatUtil.js');
 var timeAgo = require("time-ago");
 var ta = timeAgo();
@@ -146,7 +146,7 @@ function allowanceSelected(allowance) {
     nextCollection.refreshIndicator = true;
     nextCollection.itemCount = allowance.items.length;
     nextCollection.refreshIndicator = false;
-    navigation.LoadNewAllowancesPage(allowance.name, nextCollection);
+    navigation.LoadNewCollectionPage(allowance.name, nextCollection);
   }
 }
 

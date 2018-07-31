@@ -1,7 +1,7 @@
 require("tabris-js-node");
 var base64 = require('base-64');
 var utf8 = require('utf8');
-var apiUtil = require("../util/APIUtil.js");
+var apiUtil = require("../util/BudgetAPIUtil.js");
 const {ImageView, TextView, TextInput, Button, CheckBox, ScrollView, ui, AlertDialog} = require('tabris');
 var rememberUsername = ( localStorage.getItem('rememberUsername') ? (localStorage.getItem('rememberUsername') == 'yes' ? true : false) : false );
 

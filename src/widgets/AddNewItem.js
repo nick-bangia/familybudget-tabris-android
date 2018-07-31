@@ -1,4 +1,5 @@
-var apiUtil = require('../util/APIUtil.js');
+var apiUtil = require('../util/BudgetAPIUtil.js');
+var pushUtil = require('../util/PushAPIUtil.js');
 var enumUtil = require('../util/EnumUtil.js');
 
 const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui, CheckBox} = require("tabris");
@@ -18,6 +19,9 @@ module.exports = class AddNewItem extends Composite {
         var customProfile = {
             profileName: "Custom",
         };
+
+        // test the device independent pixels
+        console.log("Device Independent Pixels: " + window.devicePixelRatio);
 
         // load the the configured profiles into the array and then append the custom profile
         var itemProfiles = [];
@@ -41,7 +45,20 @@ module.exports = class AddNewItem extends Composite {
             alignment: 'left',
             itemCount: itemProfiles.length,
             itemText: index => itemProfiles[index].profileName
-        }).appendTo(this);
+        })
+        .on('select', ({index}) => {
+            // if the custom option was chosen, load the item details page to provide the custom information
+            // otherwise, do nothing
+            if (itemProfiles[index].profileName == "Custom") {
+                var page = new Page({
+                    title: "Item Details"
+                });
+    
+                // open the details page to enter custom profile details
+                openCustomProfile(page, itemProfiles[index]);
+            }
+        })
+        .appendTo(this);
 
         // description
         new TextView({
@@ -83,6 +100,19 @@ module.exports = class AddNewItem extends Composite {
         })
         .appendTo(this);
 
+        new Button({
+            id: "saveAndAddButton",
+            text: "Save and Add Another",
+            background: '#007729',
+            textColor: "white"
+        })
+        .on('select', () => {
+            
+            var chosenProfile = itemProfiles[this.children('#profilePicker').first().selectionIndex];
+            this._saveNewItem(true, chosenProfile, loadAccounts, openCustomProfile);
+        })
+        .appendTo(this);
+
         // save button
         new Button({
             id: "saveButton",
@@ -92,55 +122,85 @@ module.exports = class AddNewItem extends Composite {
         })
         .on('select', () => {
             
-            var today = new Date();
             var chosenProfile = itemProfiles[this.children('#profilePicker').first().selectionIndex];
-            var subTypeMultiplier = this.children('#creditCheckbox').first().checked ? 1 : -1;
-            var amount = Number(this.children('#amountInput').first().text) * subTypeMultiplier;
-            var subtypeId = amount < 0 ? 0 : 1;
-            var quarterId = enumUtil.GetQuarterForMonth(today.getMonth() + 1);
-
-            var newItem = {
-                "monthId":          Math.floor(today.getMonth() + 1),
-                "day":              Math.floor(today.getDate()),
-                "dayOfWeekId":      Math.floor(today.getDay() + 1),
-                "year":             Math.floor(today.getFullYear()),
-                "description":      this.children('#descriptionInput').first().text,
-                "amount":           amount,
-                "subtypeId":        subtypeId,
-                "quarter":          quarterId,
-                "isTaxDeductible":  this.children('#deductibleCheckbox').first().checked
-            };
-
-            // load the customizedProfile from memory
-            var customizedProfile = JSON.parse(localStorage.getItem("customizedProfile"));
-            if (chosenProfile.profileName != "Custom" || (customizedProfile != null && customizedProfile.isReady)) {
-
-                // if the customizedProfile has been loaded from user input, set the chosenProfile to it
-                if (customizedProfile != null && customizedProfile.isReady) {
-                    chosenProfile = customizedProfile;
-                }
-
-                newItem.subcategoryKey = chosenProfile.subcategory;
-                newItem.typeId = chosenProfile.type;
-                newItem.paymentMethodKey = chosenProfile.paymentMethod;
-                newItem.statusId = chosenProfile.status;
-
-                // lower the isReady flag
-                customizedProfile.isReady = false;
-                localStorage.setItem("customizedProfile", JSON.stringify(customizedProfile));
-
-                // persist the new item via the API
-                apiUtil.addNewItem(newItem, loadAccounts);
-            } else {
-                var page = new Page({
-                    title: "Item Details"
-                });
-
-                // open the details page to enter custom profile details
-                openCustomProfile(page, chosenProfile);
-            }
+            this._saveNewItem(false, chosenProfile, loadAccounts, openCustomProfile);
         })
         .appendTo(this);
+    }
+
+    _saveNewItem(addAnother, chosenProfile, loadAccounts, openCustomProfile) {
+        
+        // initialize some values for the new item
+        var today = new Date();
+        var subTypeMultiplier = this.children('#creditCheckbox').first().checked ? 1 : -1;
+        var amount = Number(this.children('#amountInput').first().text) * subTypeMultiplier;
+        var subtypeId = amount < 0 ? 0 : 1;
+        var quarterId = enumUtil.GetQuarterForMonth(today.getMonth() + 1);
+
+        var newItem = {
+            "monthId":          Math.floor(today.getMonth() + 1),
+            "day":              Math.floor(today.getDate()),
+            "dayOfWeekId":      Math.floor(today.getDay() + 1),
+            "year":             Math.floor(today.getFullYear()),
+            "description":      this.children('#descriptionInput').first().text,
+            "amount":           amount,
+            "subtypeId":        subtypeId,
+            "quarter":          quarterId,
+            "isTaxDeductible":  this.children('#deductibleCheckbox').first().checked
+        };
+
+        // load the customizedProfile from memory
+        var customizedProfile = JSON.parse(localStorage.getItem("customizedProfile"));
+
+        // if the customizedProfile has been loaded from user input, set the chosenProfile to it
+        if (customizedProfile != null && customizedProfile.isReady) {
+            chosenProfile = customizedProfile;
+            
+            // lower the isReady flag
+            customizedProfile.isReady = false;
+            localStorage.setItem("customizedProfile", JSON.stringify(customizedProfile));
+        }
+
+        newItem.subcategoryKey = chosenProfile.subcategory;
+        newItem.typeId = chosenProfile.type;
+        newItem.paymentMethodKey = chosenProfile.paymentMethod;
+        newItem.statusId = chosenProfile.status;
+
+        // persist the new item via the API
+        if (addAnother) {
+            // call the API to add the new item, but don't provide a callback to get out of the current page
+            apiUtil.addNewItem(newItem, null);
+
+            // clear out the fields so a new item can be added
+            this.children('#profilePicker').first().selectionIndex = 0;
+            this.children('#descriptionInput').first().text = "";
+            this.children('#amountInput').first().text = "";
+            this.children('#creditCheckbox').first().checked = false;
+            this.children('#deductibleCheckbox').first().checked = false;
+
+        } else {
+            // call the API to add the new item, and provide a callback to leave the current page
+            apiUtil.addNewItem(newItem, loadAccounts);
+
+            // if AutoPush is not turned on, ask if user wants to push
+            if (localStorage.getItem("AutoPush") == "false") {
+                var channelName = localStorage.getItem("PushToChannelName");
+
+                new AlertDialog({
+                    title: "Send a push notification?",
+                    message: "Do you want to notify "  + channelName + " about your changes?",
+                    buttons: {
+                        ok: 'Yes',
+                        cancel: 'No'
+                    }
+                }).on({
+                    closeOk: () => this._sendPushNotification()
+                }).open();
+            } else {
+                // send the push notification automatically
+                this._sendPushNotification();
+            }
+        }
     }
 
     _applyLayout() {
@@ -153,7 +213,15 @@ module.exports = class AddNewItem extends Composite {
             '#amountInput': {left: '#amountLabel 10', right: 10, baseline: '#amountLabel'},
             '#creditCheckbox': {left: 10, top: '#amountLabel 18', right: 10 },
             '#deductibleCheckbox': {left: 10, top: '#creditCheckbox 18', right: 10 },
+            '#saveAndAddButton': {centerY: 180, left: 10, right: 10, height: 62},
             '#saveButton': {centerY: 250, left: 10, right: 10, height: 62}
         });
+    }
+
+    _sendPushNotification() {
+        var firstName = localStorage.getItem("firstName");
+        var content = "New items have been added to the budget by " + firstName + ". Check out RAZBerry for latest changes!";
+
+        pushUtil.Push(content);
     }
 }

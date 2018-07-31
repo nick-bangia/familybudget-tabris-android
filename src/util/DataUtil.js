@@ -1,4 +1,4 @@
-var apiUtil = require('./APIUtil.js');
+var apiUtil = require('./BudgetAPIUtil.js');
 
 const {AlertDialog} = require('tabris');
 
