@@ -1,6 +1,6 @@
 const {Page, Picker, TextView, TextInput, CheckBox, Button, ui} = require('tabris');
-const PushToOptions = [{channel: "Nick", channelAlias: "iFoyA9"},
-                       {channel: "Komal", channelAlias: "1QjzjR"}];
+const PushToOptions = [{channel: "Nick", channelAlias: "ehIVYl"},
+                       {channel: "Komal", channelAlias: "tiG1sV"}];
 
 
 module.exports = class SettingsPage extends Page {

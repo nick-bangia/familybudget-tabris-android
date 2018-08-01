@@ -15,4 +15,6 @@
         <icon src="drawable-xxhdpi/ic_launcher.png" density="xxhdpi" />
         <icon src="drawable-xxxhdpi/ic_launcher.png" density="xxxhdpi" />
     </platform>
+    
+    <plugin name="cordova-plugin-x-toast" spec="2.5.2" />
 </widget>
