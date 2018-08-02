@@ -1,0 +1,7 @@
+{
+    "notificationUrl": "https://script.google.com/macros/s/AKfycbw8Jl_DOY3mlW6Okzcvj9V5PcB9Tf9rf0pRMNQHk27kcKGEzQAX/exec",
+    "notifyPersons": [
+        { "name": "Nick"  },
+        { "name": "Komal" }
+    ]
+}

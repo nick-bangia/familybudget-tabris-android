@@ -1,6 +1,7 @@
 var apiUtil = require('../util/BudgetAPIUtil.js');
-var pushUtil = require('../util/PushAPIUtil.js');
+var notifyUtil = require('../util/NotifyUtil.js');
 var enumUtil = require('../util/EnumUtil.js');
+var dateFormat = require('dateformat');
 
 const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui, CheckBox} = require("tabris");
 
@@ -184,21 +185,20 @@ module.exports = class AddNewItem extends Composite {
 
             // if AutoPush is not turned on, ask if user wants to push
             if (localStorage.getItem("AutoPush") == "false") {
-                var channelName = localStorage.getItem("PushToChannelName");
 
                 new AlertDialog({
-                    title: "Send a push notification?",
-                    message: "Do you want to notify "  + channelName + " about your changes?",
+                    title: "Send a notification?",
+                    message: "Do you want to send a notification about your changes?",
                     buttons: {
                         ok: 'Yes',
                         cancel: 'No'
                     }
                 }).on({
-                    closeOk: () => this._sendPushNotification()
+                    closeOk: () => this._sendNotification()
                 }).open();
             } else {
                 // send the push notification automatically
-                this._sendPushNotification();
+                this._sendNotification();
             }
         }
     }
@@ -218,10 +218,23 @@ module.exports = class AddNewItem extends Composite {
         });
     }
 
-    _sendPushNotification() {
+    _sendNotification() {
         var firstName = localStorage.getItem("firstName");
-        var content = "New items have been added to the budget by " + firstName + ". Check out RAZBerry for latest changes!";
+        
+        // set up recipients
+        var recipientsArray = [];
+        if (localStorage.getItem("notifyEmail") != "") {
+            recipientsArray.push(localStorage.getItem("notifyEmail"));
+        }
+        if (localStorage.getItem("notifySMS") != "") {
+            recipientsArray.push(localStorage.getItem("notifySMS") + "@txt.att.net");
+        }
 
-        pushUtil.Push(content);
+        // set up the subject & message
+        var subject = "Family Budget Updated as of " + dateFormat(new Date(), 'mm/dd/yyyy "at" h:MM tt') + ".";
+        var message = "New items have been added to the budget by " + firstName + ". Check out RAZBerry for latest changes!";
+
+        // send the notification
+        notifyUtil.Notify("RAZBerry", recipientsArray.join(", "), subject, message);
     }
 }

@@ -9,7 +9,8 @@
     "base-64": "^0.1.0",
     "utf8": "^2.1.2",
     "time-ago": "^0.1.0",
-    "alphanumeric-sort": "^0.0.1"
+    "alphanumeric-sort": "^0.0.1",
+    "dateformat": "^3.0.3"
   },
   "repository": {
     "type": "git",

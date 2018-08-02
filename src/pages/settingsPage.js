@@ -1,7 +1,5 @@
 const {Page, Picker, TextView, TextInput, CheckBox, Button, ui} = require('tabris');
-const PushToOptions = [{channel: "Nick", channelAlias: "ehIVYl"},
-                       {channel: "Komal", channelAlias: "tiG1sV"}];
-
+var notificationConfig = require("../config/notificationConfig.json");
 
 module.exports = class SettingsPage extends Page {
     
@@ -20,16 +18,11 @@ module.exports = class SettingsPage extends Page {
             new TextView({id: 'GeneralSectionLabel', markupEnabled: true, text: "<strong>General</strong>"}),
             new TextView({id: 'NameLabel', text: "Your Name:"}),
             new TextInput({id: 'NameInput', text: localStorage.getItem('firstName')}),
-            new TextView({id: 'NotificationsSectionLabel', markupEnabled: true, text: '<strong>Push Notifications</strong>'}),
-            new TextView({id: 'PushToLabel', text: "Push To:"}),
-            new Picker({
-                id: 'PushToPicker',
-                itemCount:  PushToOptions.length,
-                itemText: index => PushToOptions[index].channel,
-                selectionIndex: PushToOptions.findIndex(function(option) {
-                    return option.channelAlias == localStorage.getItem('PushToChannelAlias');
-                })
-            }),
+            new TextView({id: 'NotificationsSectionLabel', markupEnabled: true, text: '<strong>Notifications</strong>'}),
+            new TextView({id: "NotifyEmailLabel", text: "Send an e-mail to:"}),
+            new TextInput({id: "NotifyEmailInput", text: localStorage.getItem("notifyEmail")}),
+            new TextView({id: "NotifySMSLabel", text: "Send an SMS to:"}),
+            new TextInput({id: "NotifySMSInput", text: localStorage.getItem("notifySMS")}),
             new CheckBox({
                 id: 'AutoPushCheckbox',
                 text: 'Push Automatically upon saving new items?',
@@ -44,8 +37,8 @@ module.exports = class SettingsPage extends Page {
                 
                 // save settings changes to memory
                 localStorage.setItem('firstName', this.children('#NameInput').first().text);
-                localStorage.setItem('PushToChannelAlias', PushToOptions[this.children('#PushToPicker').first().selectionIndex].channelAlias);
-                localStorage.setItem('PushToChannelName', PushToOptions[this.children('#PushToPicker').first().selectionIndex].channel);
+                localStorage.setItem('notifyEmail', this.children('#NotifyEmailInput').first().text);
+                localStorage.setItem('notifySMS', this.children('#NotifySMSInput').first().text);
                 localStorage.setItem('AutoPush', this.children('#AutoPushCheckbox').first().checked);
 
                 window.plugins.toast.showShortCenter("Settings have been saved.");
@@ -59,9 +52,11 @@ module.exports = class SettingsPage extends Page {
             '#NameLabel': {left: 18, top: '#GeneralSectionLabel 10', width: 112},
             '#NameInput': {left: '#NameLabel 10', right: 10, baseline: '#NameLabel'},
             '#NotificationsSectionLabel': {left: 10, top: '#NameLabel 20', width: 120},
-            '#PushToLabel': {left: 18, top: '#NotificationsSectionLabel 10', width: 112},
-            '#PushToPicker': {left: '#PushToLabel 10', right: 10, baseline: '#PushToLabel'},
-            '#AutoPushCheckbox': {left: 18, top: '#PushToLabel 10', right: 10},
+            '#NotifyEmailLabel': {left: 18, top: '#NotificationsSectionLabel 10', width: 112},
+            '#NotifyEmailInput': {left: '#NotifyEmailLabel 10', right: 10, baseline: '#NotifyEmailLabel'},
+            '#NotifySMSLabel': {left: 18, top: '#NotifyEmailLabel 10', width: 112},
+            '#NotifySMSInput': {left: '#NotifySMSLabel 10', right: 10, baseline: '#NotifySMSLabel'},
+            '#AutoPushCheckbox': {left: 18, top: '#NotifySMSLabel 10', right: 10},
             '#SaveButton': {centerY: 250, left: 10, right: 10, height: 62}
         });
     }
