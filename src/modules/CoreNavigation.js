@@ -1,5 +1,6 @@
 var PageSelector = require("../widgets/PageSelector.js"); 
 var ItemProfileSelector = require("../widgets/ItemProfileSelector.js");
+var ReviewItems = require("../widgets/ReviewItems.js");
 var ItemProfile = require("../widgets/ItemProfile.js");
 var AddNewItem = require("../widgets/AddNewItem.js");
 var allowancesModule = require("./Allowances.js");
@@ -33,6 +34,11 @@ new Action({
 }).on('select', () => new SettingsPage().appendTo(navigationView))
   .appendTo(navigationView); 
 
+
+// set some application level local storage variables
+var itemsPendingSubmission = [];
+localStorage.setItem("itemsPendingSubmission", JSON.stringify(itemsPendingSubmission));
+
 function openNewPage(newPage) {
   
   switch (newPage.title) {
@@ -42,7 +48,7 @@ function openNewPage(newPage) {
       break;
     case "Add New Items":
       newPage.append(
-        new AddNewItem(loadAccounts, openCustomProfile, {
+        new AddNewItem(invokeReviewAndSubmit, openCustomProfile, {
           left: 0, top: 16, right: 0, bottom: 0
         })
       );
@@ -51,7 +57,16 @@ function openNewPage(newPage) {
       // build the ItemProfiles selection composite widget and
       // append it to the new page
       newPage.append(
-        new ItemProfileSelector(refreshItemProfileSelector, {
+        new ItemProfileSelector(invokeItemProfileSelector, {
+          left: 0, top: 5, right: 0, bottom: 0,
+          background: '#f5f5f5'
+        }
+      ));
+      break;
+    case "Review & Submit":
+      // build the Review & Submit widget and append it to the new page
+      newPage.append(
+        new ReviewItems(invokeReviewAndSubmit, {
           left: 0, top: 5, right: 0, bottom: 0,
           background: '#f5f5f5'
         }
@@ -60,8 +75,8 @@ function openNewPage(newPage) {
   }
 }
 
-function refreshItemProfileSelector() {
-  // refresh the item profile selector
+function invokeItemProfileSelector() {
+  // invokes the item profile selector - creating a "refresh" like experience
   // this method is called as a callback when the itemProfiles are modified 
   navigationView.pages().dispose();
   var newPage = new Page({
@@ -72,7 +87,19 @@ function refreshItemProfileSelector() {
   openNewPage(newPage);
 }
 
-function loadAccounts(responseData) {
+function invokeReviewAndSubmit() {
+  // refresh the review items page
+  // this method is called as a callback when an item in review is modified or when user is finished adding new items
+  navigationView.pages().dispose();
+  var newPage = new Page({
+    title: "Review & Submit"
+  });
+  newPage.appendTo(navigationView);
+  
+  openNewPage(newPage);
+}
+
+/* function loadAccounts() {
   // load the accounts as a callback
   navigationView.pages().dispose();
   var newPage = new Page({
@@ -81,7 +108,7 @@ function loadAccounts(responseData) {
   newPage.appendTo(navigationView);
 
   openNewPage(newPage);
-}
+} */
 
 function openCustomProfile(detailsPage, profile) {
   navigationView.pageAnimation = 'none';

@@ -97,8 +97,23 @@ function getAllDataLoaded() {
     return paymentMethodsReady && categoriesReady && subcategoriesReady;
 }
 
+function buildSubcategoriesForCategory(categoryKey) {
+    var allActiveSubcategories = getSubcategories();
+    var subcategoriesForCategory = [];
+
+    // loop through subcategories and set up the subcategory picker with this categories members
+    for (var i = 0; i < allActiveSubcategories.length; i++) {
+        if (allActiveSubcategories[i].categoryKey == categoryKey) {
+            subcategoriesForCategory.push(allActiveSubcategories[i]);
+        }
+    }
+
+    return subcategoriesForCategory;
+}
+
 exports.GetPaymentMethods = getPaymentMethods;
 exports.GetCategories = getCategories;
 exports.GetSubcategories = getSubcategories;
 exports.GetAllDataLoaded = getAllDataLoaded;
+exports.BuildSubcategoriesForCategory = buildSubcategoriesForCategory;
 exports.LoadData = LoadData;

@@ -7,13 +7,13 @@ const {Button, Composite, TextView, TextInput, Picker, AlertDialog, Page, ui, Ch
 
 module.exports = class AddNewItem extends Composite {
     
-    constructor(loadAccounts, openCustomProfile, properties) {
+    constructor(startReviewAndSubmit, openCustomProfile, properties) {
         super(properties);
-        this._createUI(loadAccounts, openCustomProfile);
+        this._createUI(startReviewAndSubmit, openCustomProfile);
         this._applyLayout();
     }
 
-    _createUI(loadAccounts, openCustomProfile) { 
+    _createUI(startReviewAndSubmit, openCustomProfile) { 
         // create the UI elements to edit or create a new Item
 
         // create a custom item profile to be used in adding new items
@@ -110,26 +110,26 @@ module.exports = class AddNewItem extends Composite {
         .on('select', () => {
             
             var chosenProfile = itemProfiles[this.children('#profilePicker').first().selectionIndex];
-            this._saveNewItem(true, chosenProfile, loadAccounts, openCustomProfile);
+            this._saveNewItem(true, chosenProfile, startReviewAndSubmit);
         })
         .appendTo(this);
 
         // save button
         new Button({
-            id: "saveButton",
-            text: "Save",
+            id: "reviewButton",
+            text: "Review & Submit",
             background: '#007729',
             textColor: "white"
         })
         .on('select', () => {
             
             var chosenProfile = itemProfiles[this.children('#profilePicker').first().selectionIndex];
-            this._saveNewItem(false, chosenProfile, loadAccounts, openCustomProfile);
+            this._saveNewItem(false, chosenProfile, startReviewAndSubmit);
         })
         .appendTo(this);
     }
 
-    _saveNewItem(addAnother, chosenProfile, loadAccounts, openCustomProfile) {
+    _saveNewItem(addAnother, chosenProfile, startReviewAndSubmit) {
         
         // initialize some values for the new item
         var today = new Date();
@@ -139,15 +139,15 @@ module.exports = class AddNewItem extends Composite {
         var quarterId = enumUtil.GetQuarterForMonth(today.getMonth() + 1);
 
         var newItem = {
-            "monthId":          Math.floor(today.getMonth() + 1),
-            "day":              Math.floor(today.getDate()),
-            "dayOfWeekId":      Math.floor(today.getDay() + 1),
-            "year":             Math.floor(today.getFullYear()),
-            "description":      this.children('#descriptionInput').first().text,
-            "amount":           amount,
-            "subtypeId":        subtypeId,
-            "quarter":          quarterId,
-            "isTaxDeductible":  this.children('#deductibleCheckbox').first().checked
+            monthId:          Math.floor(today.getMonth() + 1),
+            day:              Math.floor(today.getDate()),
+            dayOfWeekId:      Math.floor(today.getDay() + 1),
+            year:             Math.floor(today.getFullYear()),
+            description:      this.children('#descriptionInput').first().text,
+            amount:           amount,
+            subtypeId:        subtypeId,
+            quarter:          quarterId,
+            isTaxDeductible:  this.children('#deductibleCheckbox').first().checked
         };
 
         // load the customizedProfile from memory
@@ -167,11 +167,18 @@ module.exports = class AddNewItem extends Composite {
         newItem.paymentMethodKey = chosenProfile.paymentMethod;
         newItem.statusId = chosenProfile.status;
 
+        // add the item to the local storage for submission later
+        // get the list from memory first
+        var itemsToSubmit = JSON.parse(localStorage.getItem("itemsPendingSubmission"));
+
+        // add the new item to the list
+        itemsToSubmit.push(newItem);
+
+        // persist back to memory
+        localStorage.setItem("itemsPendingSubmission", JSON.stringify(itemsToSubmit));
+
         // persist the new item via the API
         if (addAnother) {
-            // call the API to add the new item, but don't provide a callback to get out of the current page
-            apiUtil.addNewItem(newItem, null);
-
             // clear out the fields so a new item can be added
             this.children('#profilePicker').first().selectionIndex = 0;
             this.children('#descriptionInput').first().text = "";
@@ -180,10 +187,10 @@ module.exports = class AddNewItem extends Composite {
             this.children('#deductibleCheckbox').first().checked = false;
 
         } else {
-            // call the API to add the new item, and provide a callback to leave the current page
-            apiUtil.addNewItem(newItem, loadAccounts);
+            // start the review & submit process
+            startReviewAndSubmit();
 
-            // if AutoPush is not turned on, ask if user wants to push
+            /* // if AutoPush is not turned on, ask if user wants to push
             if (localStorage.getItem("AutoPush") == "false") {
 
                 new AlertDialog({
@@ -199,7 +206,7 @@ module.exports = class AddNewItem extends Composite {
             } else {
                 // send the push notification automatically
                 this._sendNotification();
-            }
+            } */
         }
     }
 
@@ -214,7 +221,7 @@ module.exports = class AddNewItem extends Composite {
             '#creditCheckbox': {left: 10, top: '#amountLabel 18', right: 10 },
             '#deductibleCheckbox': {left: 10, top: '#creditCheckbox 18', right: 10 },
             '#saveAndAddButton': {centerY: 180, left: 10, right: 10, height: 62},
-            '#saveButton': {centerY: 250, left: 10, right: 10, height: 62}
+            '#reviewButton': {centerY: 250, left: 10, right: 10, height: 62}
         });
     }
 

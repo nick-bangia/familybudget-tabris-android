@@ -25,20 +25,6 @@ module.exports = class ItemProfile extends Composite {
         this._applyLayout(isNew, isCustom);
     }
 
-    _buildSubcategoriesForCategory(categoryKey) {
-        var allActiveSubcategories = dataUtil.GetSubcategories();
-        var subcategoriesForCategory = [];
-
-        // loop through subcategories and set up the subcategory picker with this categories members
-        for (var i = 0; i < allActiveSubcategories.length; i++) {
-            if (allActiveSubcategories[i].categoryKey == categoryKey) {
-                subcategoriesForCategory.push(allActiveSubcategories[i]);
-            }
-        }
-
-        return subcategoriesForCategory;
-    }
-
     _createUI(profile, finished, isNew, isCustom) {
         // initialize the subcategories list
         var subcategoriesForChosenCategory = [{name: '', key: '-1', categoryKey: '-1'}];
@@ -85,7 +71,7 @@ module.exports = class ItemProfile extends Composite {
             console.log("Category index chosen: " + index);
             if (typeof index !== "undefined") {
                 var thisCategory = dataUtil.GetCategories()[index];
-                subcategoriesForChosenCategory = this._buildSubcategoriesForCategory(thisCategory.key);
+                subcategoriesForChosenCategory = dataUtil.BuildSubcategoriesForCategory(thisCategory.key);
                 
                 // set the subcategory picker with the data
                 this.children('#subcategoryPicker').first().itemCount = subcategoriesForChosenCategory.length;
@@ -260,7 +246,7 @@ module.exports = class ItemProfile extends Composite {
             
             // set the subcategory based on the chosen category, if a key is specified
             if (profile.subcategory != '-1' && profile.category != '-1') {
-                subcategoriesForChosenCategory = this._buildSubcategoriesForCategory(profile.category);
+                subcategoriesForChosenCategory = dataUtil.BuildSubcategoriesForCategory(profile.category);
                 var subcategoryIndexChosen = subcategoriesForChosenCategory.findIndex(function (aSubcategory) {
                     return aSubcategory.key == profile.subcategory;
                 });
